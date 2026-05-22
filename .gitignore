@@ -1,0 +1,37 @@
+# Unity generated folders
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+
+# IDE and OS noise
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.sln.DotSettings
+*.user
+*.userprefs
+.vsconfig
+*.pidb
+*.booproj
+*.svd
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# Unity cache/artifacts
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Keep package lock tracked when Unity creates it.
+!Packages/packages-lock.json
