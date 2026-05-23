@@ -8,6 +8,10 @@
 /UserSettings/
 /MemoryCaptures/
 
+# Local source/drop folders
+/1/
+UpgradeLog.htm
+
 # IDE and OS noise
 .vs/
 .vscode/

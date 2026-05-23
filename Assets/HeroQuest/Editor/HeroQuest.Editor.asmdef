@@ -1,11 +1,14 @@
 {
-  "name": "HeroQuest.Runtime",
-  "rootNamespace": "HeroQuest",
+  "name": "HeroQuest.Editor",
+  "rootNamespace": "HeroQuest.Editor",
   "references": [
+    "HeroQuest.Runtime",
     "Unity.TextMeshPro",
     "UnityEngine.UI"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,

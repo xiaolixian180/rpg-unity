@@ -60,19 +60,35 @@ Demo-01/
           Dungeon/
             DungeonRules.cs
             MonsterTemplate.cs
+        UI/
+          Core/
+            UIView.cs
+            UIManager.cs
+          Screens/
+            CharacterSelectView.cs
         HeroQuest.Runtime.asmdef
+      Editor/
+        CharacterSelectSceneBuilder.cs
+        HeroQuest.Editor.asmdef
       Tests/
         EditMode/
           CombatCalculatorTests.cs
           DungeonRulesTests.cs
           HeroQuest.Tests.EditMode.asmdef
     Resources/
+      HeroQuest/
+        Characters/
+          Warrior_Male.png
+          Warrior_Female.png
+          Mage_Male.png
+          Mage_Female.png
+          Archer_Male.png
+          Archer_Female.png
+          Priest_Male.png
+          Priest_Female.png
     Scenes/
       SampleScene.scene
-  Docs/
-    architecture.md
-    roadmap.md
-    项目说明.md
+      CharacterSelectScene.scene
   Packages/
     manifest.json
     packages-lock.json
@@ -102,11 +118,45 @@ Demo-01/
 - 编写 EditMode 测试，覆盖战斗公式、最低伤害、副本 Boss 层规则、进入副本规则和默认怪物公式。
 - 新增 Git 忽略规则，排除 `Library`、`Logs`、`UserSettings` 等 Unity 生成目录。
 - 新增 `.gitattributes`，统一常见工程文件换行策略。
-- 新增基础 README、架构文档和路线图文档。
+- 新增基础 README，并将项目说明集中维护在本文件中。
+
+## 5.23日新增内容
+
+- 导入 8 张角色展示资源，覆盖战士、法师、弓箭手、牧师的男/女版本。
+- 新增角色配置模块 `Systems/Character`，包含角色性别、角色定义、角色列表和角色选择结果模型。
+- 新增 UI 基础框架 `Runtime/UI`：
+  - `UIView`：统一界面显示和隐藏生命周期。
+  - `UIManager`：管理 Canvas 下的界面实例。
+  - `CharacterSelectView`：角色选择界面逻辑，支持切换职业、切换性别、展示角色图、职业说明和基础属性。
+- 新增 Unity Editor 工具 `CharacterSelectSceneBuilder`。
+- 在 Unity 顶部菜单增加 `Hero Quest > Build Character Select Scene`，可一键生成角色选择场景。
+- 新增 `Assets/Scenes/CharacterSelectScene.scene`，用于展示角色选择 UI 原型。
+- Runtime 程序集补充 UGUI 和 TextMeshPro 引用，支持 UI 脚本编译。
+- README 已合并项目说明、技术栈、架构概览、项目结构、已完成功能和后续计划。
+
+## 可视化展示方式
+
+在 Unity 中等待脚本编译完成后，点击：
+
+```text
+Hero Quest > Build Character Select Scene
+```
+
+然后打开：
+
+```text
+Assets/Scenes/CharacterSelectScene.scene
+```
+
+点击 Play 后可以看到角色选择界面原型。当前界面已能展示角色图片，并通过按钮切换职业和性别。
+
+如果中文显示为方块，通常是 TextMeshPro 默认字体不包含中文字符。后续需要导入中文字体并配置 TMP Font Asset。
 
 ## 后续扩展方向
 
 - 将产品文档中的职业、技能、怪物、副本、装备、宠物等表格整理为配置资产。
+- 为 TextMeshPro 配置中文字体，修复中文显示为方块的问题。
+- 将角色选择界面进一步整理为 Prefab，降低场景重复搭建成本。
 - 在场景中接入真实 `GameBootstrap` 对象和基础 UI。
 - 先实现本地单人副本循环：移动、选怪、攻击、掉落、升级。
 - 再接入 WebSocket，多人在线相关逻辑改为服务端权威。
