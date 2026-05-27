@@ -60,6 +60,11 @@ Demo-01/
           Dungeon/
             DungeonRules.cs
             MonsterTemplate.cs
+          World/
+            CameraFollow2D.cs
+            ProceduralCharacterRenderer.cs
+            ProceduralMapRenderer.cs
+            TopDownPlayerController.cs
         UI/
           Core/
             UIView.cs
@@ -69,6 +74,7 @@ Demo-01/
         HeroQuest.Runtime.asmdef
       Editor/
         CharacterSelectSceneBuilder.cs
+        GameplayPrototypeSceneBuilder.cs
         HeroQuest.Editor.asmdef
       Tests/
         EditMode/
@@ -86,9 +92,12 @@ Demo-01/
           Archer_Female.png
           Priest_Male.png
           Priest_Female.png
+        Playable/
+          Warrior_Male_Player.png
     Scenes/
       SampleScene.scene
       CharacterSelectScene.scene
+      GameplayPrototypeScene.scene
   Packages/
     manifest.json
     packages-lock.json
@@ -133,6 +142,59 @@ Demo-01/
 - 新增 `Assets/Scenes/CharacterSelectScene.scene`，用于展示角色选择 UI 原型。
 - Runtime 程序集补充 UGUI 和 TextMeshPro 引用，支持 UI 脚本编译。
 - README 已合并项目说明、技术栈、架构概览、项目结构、已完成功能和后续计划。
+
+## 地图与移动原型
+
+- 新增 `Systems/World` 模块，作为地图、角色移动、镜头控制的客户端原型层。
+- 新增 `ProceduralMapRenderer`，可生成偏暗色、手绘感方向的 2D 野外地图背景，包含草地、泥地、树、石头、草丛等占位元素。
+- 新增 `ProceduralCharacterRenderer`，生成临时 2D 角色占位形象，后续可替换为正式角色 Sprite 或动画帧。
+- 从现有 `Warrior_Male.png` 中裁切出 `Warrior_Male_Player.png`，作为地图移动角色的临时展示 Sprite。
+- 新增 `TopDownPlayerController`，支持 WASD / 方向键控制角色上下左右移动。
+- 新增 `CameraFollow2D`，让摄像机平滑跟随玩家。
+- 新增 `GameplayPrototypeSceneBuilder`，可一键生成带地图、玩家和跟随摄像机的玩法测试场景。
+
+生成方式：
+
+```text
+Hero Quest > Build Gameplay Prototype Scene
+```
+
+生成后打开：
+
+```text
+Assets/Scenes/GameplayPrototypeScene.scene
+```
+
+点击 Play 后，可以使用 WASD 或方向键移动人物。
+
+当前玩家角色优先使用：
+
+```text
+Assets/Resources/HeroQuest/Playable/Warrior_Male_Player.png
+```
+
+这张图来自现有战士展示图的临时裁切，适合先做原型验证。后续如果需要更自然的战斗和待机表现，仍然建议替换为透明背景的正式单人 Sprite 或更规范的 Sprite Sheet。
+
+## 5.27日新增内容
+
+- 导入 `战士运动图.png` 为 `Warrior_Male_Walksheet.png`，并将白色背景处理为透明背景。
+- 新增 `GridSpriteSheetAnimator`，按 8x8 网格切帧，玩家移动时播放战士运动动画，静止时停留在首帧。
+- 动画帧会裁掉单格四周空白，玩家视觉高度调整为约 1.5 个地图格子。
+- 调整玩法原型场景比例：
+  - 地图扩大到 `72 x 48`
+  - 地块尺寸略微增大
+  - 摄像机正交尺寸增大到 `10.5`
+  - 玩家移动速度降低到 `2.2`
+- 新增左上角小地图 UI，使用 `MiniMap Camera` 渲染到 `RawImage`，用于缩略显示玩家周边区域。
+- 新增 `WildMonsterSpawner` 和 `WildMonster`，进入场景后会立即刷新野怪，并在玩家周围维持目标数量；资源加载失败时会生成红色占位怪物，避免场景里完全看不到野怪。
+- 新增 `PrototypeRuntimeInstaller`，玩家控制器启动时会自动补齐野怪刷新器和小地图 UI，避免旧场景没有重新生成时看不到这些对象。
+- 新增野怪占位图：
+  - `Archer_Male_Monster.png`
+  - `Mage_Male_Monster.png`
+  - `Priest_Male_Monster.png`
+- 野怪占位图来自 `1` 目录下角色图裁切，并已做白底透明处理。
+- 新增 `GameplayProtocolCodec` 和 `PrototypeNetworkClient`，保留与 Go 服务端通信的协议边界、消息编码和本地占位连接逻辑。
+- 新增 `GameplayProtocolCodecTests`，覆盖客户端 `hello`、`move` 消息编码，以及服务端野怪刷新消息解析。
 
 ## 可视化展示方式
 
