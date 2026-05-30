@@ -8,8 +8,18 @@ namespace HeroQuest.Systems.World
         [SerializeField] private Transform visualRoot;
 
         private Vector2 moveInput;
+        private bool inputEnabled;
         public Vector2 MoveInput => moveInput;
         public bool IsMoving => moveInput.sqrMagnitude > 0.0001f;
+
+        public void SetInputEnabled(bool enabled)
+        {
+            inputEnabled = enabled;
+            if (!inputEnabled)
+            {
+                moveInput = Vector2.zero;
+            }
+        }
 
         private void Awake()
         {
@@ -21,11 +31,17 @@ namespace HeroQuest.Systems.World
 
         private void Start()
         {
-            PrototypeRuntimeInstaller.EnsureRuntimeObjects(transform);
+            PrototypeGameplayFlow.Ensure(this);
         }
 
         private void Update()
         {
+            if (!inputEnabled)
+            {
+                moveInput = Vector2.zero;
+                return;
+            }
+
             moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             if (moveInput.sqrMagnitude > 1f)
             {

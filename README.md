@@ -196,6 +196,46 @@ Assets/Resources/HeroQuest/Playable/Warrior_Male_Player.png
 - 新增 `GameplayProtocolCodec` 和 `PrototypeNetworkClient`，保留与 Go 服务端通信的协议边界、消息编码和本地占位连接逻辑。
 - 新增 `GameplayProtocolCodecTests`，覆盖客户端 `hello`、`move` 消息编码，以及服务端野怪刷新消息解析。
 
+## 5.30日新增内容
+
+- 导入新的战士男左右运动图：
+  - `Warrior_Male_Walk_Right.png`
+  - `Warrior_Male_Walk_Left.png`
+- `GridSpriteSheetAnimator` 支持按玩家水平移动方向切换左/右运动表，玩家向左移动时播放左向动画，向右移动时播放右向动画。
+- 新增登录功能原型：
+  - 本地测试账号：`test`
+  - 本地测试密码：`test`
+  - 在 `GameplayPrototypeScene` 中点击 Play 后，会先显示登录 UI
+  - 登录成功后选择战士男/女，确认后进入地图并启用移动、野怪和小地图
+- 新增登录服务接口 `IAuthService` 和本地实现 `LocalTestAuthService`，后续可替换为 Go 服务端认证实现。
+- 新增登录协议编解码 `AuthProtocolCodec`，预留 `login` / `login_result` JSON 消息格式。
+- 新增 `LoginView` 和 `LoginSceneBuilder`，可通过 Unity 菜单生成登录场景。
+- 新增 `AuthServiceTests`，覆盖测试账号登录、错误密码拒绝和登录请求编码。
+
+登录场景生成方式：
+
+```text
+Hero Quest > Build Login Scene
+```
+
+生成后打开：
+
+```text
+Assets/Scenes/LoginScene.scene
+```
+
+完整原型流程推荐直接运行：
+
+```text
+Assets/Scenes/GameplayPrototypeScene.scene
+```
+
+运行流程：
+
+```text
+Login(test/test) -> Choose Warrior Gender -> Enter Map
+```
+
 ## 可视化展示方式
 
 在 Unity 中等待脚本编译完成后，点击：
@@ -213,6 +253,41 @@ Assets/Scenes/CharacterSelectScene.scene
 点击 Play 后可以看到角色选择界面原型。当前界面已能展示角色图片，并通过按钮切换职业和性别。
 
 如果中文显示为方块，通常是 TextMeshPro 默认字体不包含中文字符。后续需要导入中文字体并配置 TMP Font Asset。
+
+## 产品文档框架预设
+
+已根据 `2d-rpg产品业务文档.md` 预先补齐客户端侧基础框架，当前阶段只做模块边界、数据模型、规则函数和服务接口，不直接把完整玩法写死。
+
+新增通用基础类型：
+
+- `GameErrorCode`：对齐产品文档错误码，例如未登录、层数未解锁、技能冷却、金币不足、交易单不存在等。
+- `GameTypes`：定义货币、物品类型、装备槽位、品质、技能类型、宠物类型、交易状态、排行榜类型。
+- `ServiceResult` / `ServiceResult<T>`：统一客户端服务返回结构，方便以后从本地 stub 切换到 Go 服务端响应。
+- `ProductRuleConfig`：集中保存产品文档中的默认参数，例如最大等级、副本层数、红名阈值、无敌时间、PvP 奖励、Boss 掉率、自动存档间隔、限流和最大消息体等。
+
+新增玩法模块骨架：
+
+- `Systems/Inventory`：背包物品堆叠、背包快照、添加/消耗物品接口。
+- `Systems/Equipment`：装备模型、8 个装备槽位、穿戴/卸下/强化/附魔接口，以及强化费用和品质战力倍率规则。
+- `Systems/Skills`：技能定义、玩家技能、升级/释放/重置接口，预留主动、被动、终极技能。
+- `Systems/Pets`：宠物状态、召唤/收回/升级/探险/合成接口，预留同品质合成规则。
+- `Systems/PvP`：玩家攻击请求、击杀奖励预览、悬赏和复仇接口，预留红名、金币掠夺和悬赏奖励规则。
+- `Systems/Shop`：金币商店/荣誉商店商品模型、购买接口，预留等级、库存校验。
+- `Systems/Trading`：交易行订单、分页浏览、创建订单、购买、取消接口，预留不可购买自己商品等规则。
+- `Systems/Ranking`：等级、战力、荣誉排行榜模型和 Top 50 查询接口。
+- `Systems/Save`：脏数据标记、立即保存、存档状态接口，预留服务端 60 秒自动存档机制。
+- `Systems/Dungeon`：新增资源节点采集模型和采集规则，补齐产品文档中的资源采集并发边界。
+
+新增网络协议预留：
+
+- `GameMessageTypes`：集中定义登录、创建角色、进副本、移动、攻击、技能、采集、装备、宠物、PvP、商店、交易、排行榜等消息类型。
+- `ClientRequestEnvelope` / `ServerResponseEnvelope`：预留统一请求/响应信封，后续 Go WebSocket 服务端返回错误码和业务 payload 时可直接对接。
+
+`GameBootstrap` 现在会统一注册这些本地 stub 服务。后续接真实后端时，优先替换对应接口实现，例如把 `IShopService` 从 `ShopServiceStub` 换成 `GoShopService`，而不是改 UI 或玩法调用方。
+
+新增测试：
+
+- `ProductFrameworkRulesTests`：覆盖装备品质倍率、技能默认倍率、宠物合成、PvP 掠夺、商店购买校验、交易行购买限制、资源重复采集等基础规则。
 
 ## 后续扩展方向
 

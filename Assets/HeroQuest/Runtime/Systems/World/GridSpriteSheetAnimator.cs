@@ -8,7 +8,8 @@ namespace HeroQuest.Systems.World
     {
         private static readonly Dictionary<string, Sprite[]> FrameCache = new();
 
-        [SerializeField] private string textureResourcePath = "HeroQuest/Playable/Warrior_Male_Walksheet";
+        [SerializeField] private string rightTextureResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Right";
+        [SerializeField] private string leftTextureResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Left";
         [SerializeField] private int columns = 8;
         [SerializeField] private int rows = 8;
         [SerializeField] private float framesPerSecond = 10f;
@@ -23,19 +24,20 @@ namespace HeroQuest.Systems.World
         [SerializeField] private int frameInsetBottom = 45;
 
         private SpriteRenderer spriteRenderer;
-        private Sprite[] frames;
+        private Sprite[] rightFrames;
+        private Sprite[] leftFrames;
+        private Sprite[] activeFrames;
         private TopDownPlayerController controller;
         private float frameTimer;
         private int currentFrame;
+        private bool facingLeft;
 
-        private void Awake()
+        public void Configure(string rightResourcePath, string leftResourcePath)
         {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-            spriteRenderer.sortingOrder = sortingOrder;
-            transform.localScale = localScale;
-            controller = GetComponentInParent<TopDownPlayerController>();
-            frames = GetFrames(
-                textureResourcePath,
+            rightTextureResourcePath = rightResourcePath;
+            leftTextureResourcePath = leftResourcePath;
+            rightFrames = GetFrames(
+                rightTextureResourcePath,
                 columns,
                 rows,
                 pixelsPerUnit,
@@ -43,17 +45,37 @@ namespace HeroQuest.Systems.World
                 frameInsetRight,
                 frameInsetTop,
                 frameInsetBottom);
+            leftFrames = GetFrames(
+                leftTextureResourcePath,
+                columns,
+                rows,
+                pixelsPerUnit,
+                frameInsetLeft,
+                frameInsetRight,
+                frameInsetTop,
+                frameInsetBottom);
+            activeFrames = facingLeft ? leftFrames ?? rightFrames : rightFrames ?? leftFrames;
             ApplyIdle();
+        }
+
+        private void Awake()
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteRenderer.sortingOrder = sortingOrder;
+            transform.localScale = localScale;
+            controller = GetComponentInParent<TopDownPlayerController>();
+            Configure(rightTextureResourcePath, leftTextureResourcePath);
         }
 
         private void Update()
         {
-            if (frames == null || frames.Length == 0)
+            if (activeFrames == null || activeFrames.Length == 0)
             {
                 return;
             }
 
             var isMoving = controller != null && controller.IsMoving;
+            UpdateFacing();
             if (!isMoving)
             {
                 ApplyIdle();
@@ -73,6 +95,11 @@ namespace HeroQuest.Systems.World
 
         private void ApplyIdle()
         {
+            if (activeFrames == null || activeFrames.Length == 0)
+            {
+                return;
+            }
+
             frameTimer = 0f;
             currentFrame = idleFrame;
             spriteRenderer.sprite = GetFrame(animationRow, idleFrame);
@@ -81,7 +108,24 @@ namespace HeroQuest.Systems.World
         private Sprite GetFrame(int row, int column)
         {
             var index = Mathf.Clamp(row, 0, rows - 1) * columns + Mathf.Clamp(column, 0, columns - 1);
-            return frames[index];
+            return activeFrames[index];
+        }
+
+        private void UpdateFacing()
+        {
+            if (controller == null || Mathf.Abs(controller.MoveInput.x) <= 0.01f)
+            {
+                return;
+            }
+
+            var nextFacingLeft = controller.MoveInput.x < 0f;
+            if (nextFacingLeft == facingLeft)
+            {
+                return;
+            }
+
+            facingLeft = nextFacingLeft;
+            activeFrames = facingLeft ? leftFrames ?? rightFrames : rightFrames ?? leftFrames;
         }
 
         private static Sprite[] GetFrames(
