@@ -11,6 +11,32 @@ namespace HeroQuest.Systems.World
         private Vector3 origin;
         private Vector3 target;
         private float timer;
+        private string displayName;
+        private Transform healthFill;
+        private float healthPercent = 1f;
+
+        public string DisplayName => displayName;
+
+        public void Initialize(string monsterName, Transform healthFillTransform)
+        {
+            displayName = monsterName;
+            healthFill = healthFillTransform;
+            SetHealthPercent(1f);
+        }
+
+        public void SetHealthPercent(float percent)
+        {
+            healthPercent = Mathf.Clamp01(percent);
+            if (healthFill == null)
+            {
+                return;
+            }
+
+            var scale = healthFill.localScale;
+            scale.x = healthPercent;
+            healthFill.localScale = scale;
+            healthFill.localPosition = new Vector3(-(1f - healthPercent) * 0.59f, 0f, 0f);
+        }
 
         private void Awake()
         {

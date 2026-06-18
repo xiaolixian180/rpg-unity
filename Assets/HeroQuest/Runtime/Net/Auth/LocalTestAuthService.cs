@@ -12,8 +12,8 @@ namespace HeroQuest.Net.Auth
         {
             var isValid = account == TestAccount && password == TestPassword;
             var result = isValid
-                ? new AuthResult(true, "local-test-player", "Login success")
-                : new AuthResult(false, string.Empty, "Account or password is invalid");
+                ? new AuthResult(true, "local-test-player", "登录成功")
+                : new AuthResult(false, string.Empty, "账号或密码错误");
 
             return Task.FromResult(result);
         }

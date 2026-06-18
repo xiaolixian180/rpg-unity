@@ -44,7 +44,7 @@ namespace HeroQuest.UI.Screens
 
         private async void Login()
         {
-            SetMessage("Logging in...");
+            SetMessage("登录中...");
             SetInteractable(false);
 
             var account = accountInput != null ? accountInput.text.Trim() : string.Empty;

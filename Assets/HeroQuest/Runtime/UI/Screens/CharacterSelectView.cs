@@ -10,16 +10,16 @@ namespace HeroQuest.UI.Screens
 {
     public sealed class CharacterSelectView : UIView
     {
-        [Header("Portrait")]
+        [Header("角色立绘")]
         [SerializeField] private Image portraitImage;
 
-        [Header("Labels")]
+        [Header("文本")]
         [SerializeField] private TMP_Text classNameText;
         [SerializeField] private TMP_Text genderText;
         [SerializeField] private TMP_Text descriptionText;
         [SerializeField] private TMP_Text statsText;
 
-        [Header("Buttons")]
+        [Header("按钮")]
         [SerializeField] private Button previousClassButton;
         [SerializeField] private Button nextClassButton;
         [SerializeField] private Button toggleGenderButton;

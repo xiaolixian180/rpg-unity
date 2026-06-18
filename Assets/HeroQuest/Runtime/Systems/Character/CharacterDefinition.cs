@@ -11,6 +11,10 @@ namespace HeroQuest.Systems.Character
             string displayName,
             string roleDescription,
             string resourcePath,
+            string walkRightResourcePath,
+            string walkLeftResourcePath,
+            int walkColumns,
+            int walkRows,
             StatBlock baseStats)
         {
             CharacterClass = characterClass;
@@ -18,6 +22,10 @@ namespace HeroQuest.Systems.Character
             DisplayName = displayName;
             RoleDescription = roleDescription;
             ResourcePath = resourcePath;
+            WalkRightResourcePath = walkRightResourcePath;
+            WalkLeftResourcePath = walkLeftResourcePath;
+            WalkColumns = walkColumns;
+            WalkRows = walkRows;
             BaseStats = baseStats;
         }
 
@@ -26,6 +34,10 @@ namespace HeroQuest.Systems.Character
         public string DisplayName { get; }
         public string RoleDescription { get; }
         public string ResourcePath { get; }
+        public string WalkRightResourcePath { get; }
+        public string WalkLeftResourcePath { get; }
+        public int WalkColumns { get; }
+        public int WalkRows { get; }
         public StatBlock BaseStats { get; }
 
         public Sprite LoadPortrait()

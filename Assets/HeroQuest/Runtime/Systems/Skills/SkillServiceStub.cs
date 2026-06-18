@@ -12,7 +12,7 @@ namespace HeroQuest.Systems.Skills
         public ServiceResult LearnOrUpgrade(string skillId)
         {
             return string.IsNullOrWhiteSpace(skillId)
-                ? ServiceResult.Fail(GameErrorCode.SkillNotFound, "Skill id is required.")
+                ? ServiceResult.Fail(GameErrorCode.SkillNotFound, "技能编号不能为空。")
                 : ServiceResult.Success();
         }
 
@@ -20,18 +20,18 @@ namespace HeroQuest.Systems.Skills
         {
             if (string.IsNullOrWhiteSpace(skillId))
             {
-                return ServiceResult.Fail(GameErrorCode.SkillNotFound, "Skill id is required.");
+                return ServiceResult.Fail(GameErrorCode.SkillNotFound, "技能编号不能为空。");
             }
 
             return string.IsNullOrWhiteSpace(targetId)
-                ? ServiceResult.Fail(GameErrorCode.TargetNotFound, "Target id is required.")
+                ? ServiceResult.Fail(GameErrorCode.TargetNotFound, "目标编号不能为空。")
                 : ServiceResult.Success();
         }
 
         public ServiceResult ResetAll(int goldCost)
         {
             return goldCost < 0
-                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "Gold cost cannot be negative.")
+                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "金币消耗不能为负数。")
                 : ServiceResult.Success();
         }
     }

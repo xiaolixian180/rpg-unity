@@ -12,7 +12,7 @@ namespace HeroQuest.Systems.Equipment
         public ServiceResult Equip(string equipId, EquipmentSlot slot)
         {
             return string.IsNullOrWhiteSpace(equipId)
-                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "Equipment id is required.")
+                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "装备编号不能为空。")
                 : ServiceResult.Success();
         }
 
@@ -24,14 +24,14 @@ namespace HeroQuest.Systems.Equipment
         public ServiceResult Strengthen(string equipId)
         {
             return string.IsNullOrWhiteSpace(equipId)
-                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "Equipment id is required.")
+                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "装备编号不能为空。")
                 : ServiceResult.Success();
         }
 
         public ServiceResult Enchant(string equipId, string attributeId)
         {
             return string.IsNullOrWhiteSpace(equipId) || string.IsNullOrWhiteSpace(attributeId)
-                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "Equipment id and attribute id are required.")
+                ? ServiceResult.Fail(GameErrorCode.InvalidParameter, "装备编号和属性编号不能为空。")
                 : ServiceResult.Success();
         }
     }

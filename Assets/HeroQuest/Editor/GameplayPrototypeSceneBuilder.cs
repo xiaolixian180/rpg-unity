@@ -30,6 +30,7 @@ namespace HeroQuest.Editor
 
             var map = new GameObject("Prototype Map");
             var mapRenderer = map.AddComponent<ProceduralMapRenderer>();
+            mapRenderer.EnsureMinimumSize(128, 88);
             mapRenderer.Build();
 
             var player = new GameObject("Player");
@@ -43,6 +44,7 @@ namespace HeroQuest.Editor
 
             var follow = cameraObject.AddComponent<CameraFollow2D>();
             follow.SetTarget(player.transform);
+            follow.SetBounds(mapRenderer.GetWorldBounds());
             cameraObject.transform.position = new Vector3(0f, 0f, -10f);
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));

@@ -7,7 +7,25 @@ namespace HeroQuest.Systems.World
     {
         [SerializeField] private int pixelsPerUnit = 64;
         [SerializeField] private string playableSpriteResourcePath = "HeroQuest/Playable/Warrior_Male_Player";
-        [SerializeField] private string walksheetResourcePath = "HeroQuest/Playable/Warrior_Male_Walksheet";
+        [SerializeField] private string walkRightResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Right";
+        [SerializeField] private string walkLeftResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Left";
+        [SerializeField] private int walkColumns = 8;
+        [SerializeField] private int walkRows = 8;
+
+        public void Configure(
+            string playableResourcePath,
+            string walkRightResourcePath,
+            string walkLeftResourcePath,
+            int columns,
+            int rows)
+        {
+            playableSpriteResourcePath = playableResourcePath;
+            this.walkRightResourcePath = walkRightResourcePath;
+            this.walkLeftResourcePath = walkLeftResourcePath;
+            walkColumns = Mathf.Max(1, columns);
+            walkRows = Mathf.Max(1, rows);
+            Build();
+        }
 
         private void OnEnable()
         {
@@ -24,15 +42,16 @@ namespace HeroQuest.Systems.World
 
             AddSprite(root.transform, "Shadow", CreateEllipseSprite(96, 28, new Color(0f, 0f, 0f, 0.28f)), new Vector3(0f, -0.10f, 0f), new Vector3(0.72f, 0.24f, 1f), -2);
 
-            var walksheet = Resources.Load<Texture2D>(walksheetResourcePath);
-            if (walksheet != null)
+            var walkRight = Resources.Load<Texture2D>(walkRightResourcePath);
+            if (walkRight != null)
             {
                 var animatedObject = new GameObject("AnimatedSprite");
                 animatedObject.transform.SetParent(root.transform, false);
                 animatedObject.transform.localPosition = Vector3.zero;
                 var spriteRenderer = animatedObject.AddComponent<SpriteRenderer>();
                 spriteRenderer.sortingOrder = 3;
-                animatedObject.AddComponent<GridSpriteSheetAnimator>();
+                var animator = animatedObject.AddComponent<GridSpriteSheetAnimator>();
+                animator.Configure(walkRightResourcePath, walkLeftResourcePath, walkColumns, walkRows);
                 return;
             }
 

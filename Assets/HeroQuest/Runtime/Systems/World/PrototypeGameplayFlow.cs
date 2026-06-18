@@ -1,7 +1,9 @@
 using System.Threading;
+using HeroQuest.Domain;
 using HeroQuest.Net.Auth;
 using HeroQuest.Systems.Character;
-using TMPro;
+using HeroQuest.UI.Core;
+using HeroQuest.UI.HUD;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,7 +16,8 @@ namespace HeroQuest.Systems.World
         private GridSpriteSheetAnimator animator;
         private Canvas flowCanvas;
         private GameObject loginPanel;
-        private GameObject warriorPanel;
+        private GameObject characterPanel;
+        private CharacterClass selectedClass = CharacterClass.Warrior;
         private CharacterGender selectedGender = CharacterGender.Male;
         private Button activeLoginButton;
 
@@ -87,23 +90,23 @@ namespace HeroQuest.Systems.World
             ClearPanels();
 
             loginPanel = CreatePanel("Login Panel", new Color(0.035f, 0.043f, 0.038f, 0.96f));
-            CreateText(loginPanel.transform, "Hero Quest", 54, new Vector2(0.5f, 0.66f), new Vector2(520f, 72f));
+            CreateText(loginPanel.transform, "勇者远征", 54, new Vector2(0.5f, 0.66f), new Vector2(520f, 72f));
 
-            var account = CreateInput(loginPanel.transform, "Account", LocalTestAuthService.TestAccount, false, new Vector2(0.5f, 0.53f));
-            var password = CreateInput(loginPanel.transform, "Password", LocalTestAuthService.TestPassword, true, new Vector2(0.5f, 0.44f));
-            var message = CreateText(loginPanel.transform, "test / test", 22, new Vector2(0.5f, 0.30f), new Vector2(520f, 44f));
-            var loginButton = CreateButton(loginPanel.transform, "Login", new Vector2(0.5f, 0.36f), new Vector2(220f, 58f));
+            var account = CreateInput(loginPanel.transform, "账号", LocalTestAuthService.TestAccount, false, new Vector2(0.5f, 0.53f));
+            var password = CreateInput(loginPanel.transform, "密码", LocalTestAuthService.TestPassword, true, new Vector2(0.5f, 0.44f));
+            var message = CreateText(loginPanel.transform, "测试账号：test / test", 22, new Vector2(0.5f, 0.30f), new Vector2(520f, 44f));
+            var loginButton = CreateButton(loginPanel.transform, "登录", new Vector2(0.5f, 0.36f), new Vector2(220f, 58f));
             activeLoginButton = loginButton;
             loginButton.onClick.AddListener(async () =>
             {
-                message.text = "Logging in...";
+                message.text = "登录中...";
                 loginButton.interactable = false;
                 var result = await authService.LoginAsync(account.text.Trim(), password.text, CancellationToken.None);
                 loginButton.interactable = true;
                 message.text = result.Message;
                 if (result.Success)
                 {
-                    ShowWarriorSelect();
+                    ShowCharacterSelect();
                 }
             });
 
@@ -111,58 +114,168 @@ namespace HeroQuest.Systems.World
             account.ActivateInputField();
         }
 
-        private void ShowWarriorSelect()
+        private void ShowCharacterSelect()
         {
             ClearPanels();
 
-            warriorPanel = CreatePanel("Warrior Select Panel", new Color(0.035f, 0.043f, 0.038f, 0.96f));
-            CreateText(warriorPanel.transform, "Choose Warrior", 46, new Vector2(0.5f, 0.78f), new Vector2(560f, 70f));
+            characterPanel = CreatePanel("Character Select Panel", new Color(0.025f, 0.030f, 0.026f, 0.97f));
+            CreateText(characterPanel.transform, "选择角色", 44, new Vector2(0.5f, 0.91f), new Vector2(720f, 66f));
+            CreateText(characterPanel.transform, "选择职业与性别后进入地图", 20, new Vector2(0.5f, 0.855f), new Vector2(760f, 38f));
 
-            var portrait = new GameObject("Warrior Portrait", typeof(RectTransform), typeof(Image));
-            portrait.transform.SetParent(warriorPanel.transform, false);
+            var portraitFrame = new GameObject("Portrait Frame", typeof(RectTransform), typeof(Image));
+            portraitFrame.transform.SetParent(characterPanel.transform, false);
+            var frameRect = portraitFrame.GetComponent<RectTransform>();
+            SetAnchor(frameRect, new Vector2(0.50f, 0.54f), new Vector2(620f, 580f));
+            portraitFrame.GetComponent<Image>().color = new Color(0.08f, 0.10f, 0.08f, 0.96f);
+
+            var portrait = new GameObject("Character Portrait", typeof(RectTransform), typeof(Image));
+            portrait.transform.SetParent(portraitFrame.transform, false);
             var portraitRect = portrait.GetComponent<RectTransform>();
-            SetAnchor(portraitRect, new Vector2(0.5f, 0.56f), new Vector2(460f, 300f));
+            portraitRect.anchorMin = Vector2.zero;
+            portraitRect.anchorMax = Vector2.one;
+            portraitRect.offsetMin = new Vector2(28f, 28f);
+            portraitRect.offsetMax = new Vector2(-28f, -28f);
             var portraitImage = portrait.GetComponent<Image>();
             portraitImage.preserveAspect = true;
 
-            var genderLabel = CreateText(warriorPanel.transform, "Male", 28, new Vector2(0.5f, 0.33f), new Vector2(320f, 44f));
-            RefreshWarriorPreview(portraitImage, genderLabel);
+            var className = CreateText(characterPanel.transform, string.Empty, 34, new Vector2(0.82f, 0.70f), new Vector2(380f, 52f));
+            var genderLabel = CreateText(characterPanel.transform, string.Empty, 23, new Vector2(0.82f, 0.64f), new Vector2(380f, 40f));
+            var description = CreateText(characterPanel.transform, string.Empty, 21, new Vector2(0.82f, 0.53f), new Vector2(390f, 100f));
+            var stats = CreateText(characterPanel.transform, string.Empty, 21, new Vector2(0.82f, 0.38f), new Vector2(390f, 150f));
 
-            var toggleButton = CreateButton(warriorPanel.transform, "Toggle Gender", new Vector2(0.42f, 0.24f), new Vector2(220f, 58f));
-            toggleButton.onClick.AddListener(() =>
+            var classButtons = new Button[CharacterRoster.AvailableClasses.Count];
+            for (var i = 0; i < CharacterRoster.AvailableClasses.Count; i++)
             {
-                selectedGender = selectedGender == CharacterGender.Male ? CharacterGender.Female : CharacterGender.Male;
-                RefreshWarriorPreview(portraitImage, genderLabel);
+                var classIndex = i;
+                var characterClass = CharacterRoster.AvailableClasses[i];
+                var button = CreateButton(
+                    characterPanel.transform,
+                    GetClassLabel(characterClass),
+                    new Vector2(0.16f, 0.72f - i * 0.13f),
+                    new Vector2(260f, 68f));
+                classButtons[i] = button;
+                button.onClick.AddListener(() =>
+                {
+                    selectedClass = CharacterRoster.AvailableClasses[classIndex];
+                    RefreshCharacterPreview(portraitImage, className, genderLabel, description, stats, classButtons, null, null);
+                });
+            }
+
+            var maleButton = CreateButton(characterPanel.transform, "男性", new Vector2(0.43f, 0.17f), new Vector2(190f, 58f));
+            var femaleButton = CreateButton(characterPanel.transform, "女性", new Vector2(0.57f, 0.17f), new Vector2(190f, 58f));
+            maleButton.onClick.AddListener(() =>
+            {
+                selectedGender = CharacterGender.Male;
+                RefreshCharacterPreview(portraitImage, className, genderLabel, description, stats, classButtons, maleButton, femaleButton);
+            });
+            femaleButton.onClick.AddListener(() =>
+            {
+                selectedGender = CharacterGender.Female;
+                RefreshCharacterPreview(portraitImage, className, genderLabel, description, stats, classButtons, maleButton, femaleButton);
             });
 
-            var enterButton = CreateButton(warriorPanel.transform, "Enter Map", new Vector2(0.58f, 0.24f), new Vector2(220f, 58f));
+            var enterButton = CreateButton(characterPanel.transform, "进入地图", new Vector2(0.82f, 0.17f), new Vector2(280f, 64f));
             enterButton.onClick.AddListener(EnterMap);
+
+            RefreshCharacterPreview(portraitImage, className, genderLabel, description, stats, classButtons, maleButton, femaleButton);
         }
 
-        private void RefreshWarriorPreview(Image portraitImage, TMP_Text genderLabel)
+        private void RefreshCharacterPreview(
+            Image portraitImage,
+            Text className,
+            Text genderLabel,
+            Text description,
+            Text stats,
+            Button[] classButtons,
+            Button maleButton,
+            Button femaleButton)
         {
-            var isMale = selectedGender == CharacterGender.Male;
-            portraitImage.sprite = Resources.Load<Sprite>(isMale ? "HeroQuest/Characters/Warrior_Male" : "HeroQuest/Characters/Warrior_Female");
-            genderLabel.text = isMale ? "Male Warrior" : "Female Warrior";
+            var definition = CharacterRoster.Get(selectedClass, selectedGender);
+            portraitImage.sprite = definition.LoadPortrait();
+            className.text = GetClassLabel(selectedClass);
+            genderLabel.text = selectedGender == CharacterGender.Male ? "男性" : "女性";
+            description.text = GetClassDescription(selectedClass);
+            stats.text =
+                $"力量  {definition.BaseStats.strength}\n" +
+                $"敏捷  {definition.BaseStats.agility}\n" +
+                $"智力  {definition.BaseStats.intelligence}\n" +
+                $"体质  {definition.BaseStats.constitution}\n" +
+                $"防御  {definition.BaseStats.defense}";
+
+            for (var i = 0; i < classButtons.Length; i++)
+            {
+                var selected = CharacterRoster.AvailableClasses[i] == selectedClass;
+                classButtons[i].GetComponent<Image>().color = selected
+                    ? new Color(0.54f, 0.42f, 0.20f, 1f)
+                    : new Color(0.22f, 0.30f, 0.22f, 1f);
+            }
+
+            if (maleButton != null && femaleButton != null)
+            {
+                maleButton.GetComponent<Image>().color = selectedGender == CharacterGender.Male
+                    ? new Color(0.54f, 0.42f, 0.20f, 1f)
+                    : new Color(0.22f, 0.30f, 0.22f, 1f);
+                femaleButton.GetComponent<Image>().color = selectedGender == CharacterGender.Female
+                    ? new Color(0.54f, 0.42f, 0.20f, 1f)
+                    : new Color(0.22f, 0.30f, 0.22f, 1f);
+            }
+        }
+
+        private static string GetClassLabel(CharacterClass characterClass)
+        {
+            return characterClass switch
+            {
+                CharacterClass.Warrior => "战士",
+                CharacterClass.Mage => "法师",
+                CharacterClass.Archer => "弓箭手",
+                CharacterClass.Priest => "牧师",
+                _ => characterClass.ToString()
+            };
+        }
+
+        private static string GetClassDescription(CharacterClass characterClass)
+        {
+            return characterClass switch
+            {
+                CharacterClass.Warrior => "近战前排职业，生存能力强，适合新手进入地图测试。",
+                CharacterClass.Mage => "远程法术职业，爆发伤害高，后续可扩展元素技能。",
+                CharacterClass.Archer => "远程敏捷职业，偏向持续输出和暴击成长。",
+                CharacterClass.Priest => "辅助职业，后续可扩展治疗、护盾和团队增益。",
+                _ => string.Empty
+            };
         }
 
         private void EnterMap()
         {
+            var definition = CharacterRoster.Get(selectedClass, selectedGender);
+            var characterRenderer = playerController != null ? playerController.GetComponent<ProceduralCharacterRenderer>() : null;
+            if (characterRenderer != null)
+            {
+                characterRenderer.Configure(
+                    definition.ResourcePath,
+                    definition.WalkRightResourcePath,
+                    definition.WalkLeftResourcePath,
+                    definition.WalkColumns,
+                    definition.WalkRows);
+                animator = playerController.GetComponentInChildren<GridSpriteSheetAnimator>(true);
+            }
+
             if (animator != null)
             {
-                if (selectedGender == CharacterGender.Male)
-                {
-                    animator.Configure("HeroQuest/Playable/Warrior_Male_Walk_Right", "HeroQuest/Playable/Warrior_Male_Walk_Left");
-                }
-                else
-                {
-                    animator.Configure("HeroQuest/Playable/Warrior_Female_Walk_Right", "HeroQuest/Playable/Warrior_Female_Walk_Left");
-                }
+                animator.Configure(
+                    definition.WalkRightResourcePath,
+                    definition.WalkLeftResourcePath,
+                    definition.WalkColumns,
+                    definition.WalkRows);
             }
 
             ClearPanels();
             SetGameplayEnabled(true);
             PrototypeRuntimeInstaller.EnsureRuntimeObjects(playerController.transform);
+
+            var hud = GameplayHudController.Ensure();
+            hud.SetCharacter($"{GetClassLabel(selectedClass)} {(selectedGender == CharacterGender.Male ? "男" : "女")}", definition.LoadPortrait());
+            hud.AddLog($"[角色] 已选择{GetClassLabel(selectedClass)}。");
         }
 
         private void SetGameplayEnabled(bool enabled)
@@ -182,9 +295,9 @@ namespace HeroQuest.Systems.World
                 Destroy(loginPanel);
             }
 
-            if (warriorPanel != null)
+            if (characterPanel != null)
             {
-                Destroy(warriorPanel);
+                Destroy(characterPanel);
             }
         }
 
@@ -201,28 +314,31 @@ namespace HeroQuest.Systems.World
             return panel;
         }
 
-        private TMP_Text CreateText(Transform parent, string text, float size, Vector2 anchor, Vector2 sizeDelta)
+        private Text CreateText(Transform parent, string text, float size, Vector2 anchor, Vector2 sizeDelta)
         {
-            var textObject = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text));
             textObject.transform.SetParent(parent, false);
-            var label = textObject.GetComponent<TextMeshProUGUI>();
+            var label = textObject.GetComponent<Text>();
             label.text = text;
-            label.fontSize = size;
-            label.alignment = TextAlignmentOptions.Center;
+            label.font = ChineseFontProvider.GetFont();
+            label.fontSize = Mathf.RoundToInt(size);
+            label.alignment = TextAnchor.MiddleCenter;
             label.color = new Color(0.92f, 0.90f, 0.82f, 1f);
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
             SetAnchor(label.rectTransform, anchor, sizeDelta);
             return label;
         }
 
-        private TMP_InputField CreateInput(Transform parent, string placeholder, string value, bool password, Vector2 anchor)
+        private InputField CreateInput(Transform parent, string placeholder, string value, bool password, Vector2 anchor)
         {
-            var inputObject = new GameObject(placeholder, typeof(RectTransform), typeof(Image), typeof(TMP_InputField));
+            var inputObject = new GameObject(placeholder, typeof(RectTransform), typeof(Image), typeof(InputField));
             inputObject.transform.SetParent(parent, false);
             inputObject.GetComponent<Image>().color = new Color(0.15f, 0.17f, 0.16f, 1f);
             SetAnchor(inputObject.GetComponent<RectTransform>(), anchor, new Vector2(420f, 56f));
 
-            var input = inputObject.GetComponent<TMP_InputField>();
-            input.contentType = password ? TMP_InputField.ContentType.Password : TMP_InputField.ContentType.Standard;
+            var input = inputObject.GetComponent<InputField>();
+            input.contentType = password ? InputField.ContentType.Password : InputField.ContentType.Standard;
             input.text = value;
 
             var text = CreateInputText(inputObject.transform, string.Empty, new Color(0.92f, 0.90f, 0.82f, 1f));
@@ -242,15 +358,18 @@ namespace HeroQuest.Systems.World
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
         }
 
-        private TextMeshProUGUI CreateInputText(Transform parent, string text, Color color)
+        private Text CreateInputText(Transform parent, string text, Color color)
         {
-            var textObject = new GameObject("Input Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var textObject = new GameObject("Input Text", typeof(RectTransform), typeof(Text));
             textObject.transform.SetParent(parent, false);
-            var label = textObject.GetComponent<TextMeshProUGUI>();
+            var label = textObject.GetComponent<Text>();
             label.text = text;
+            label.font = ChineseFontProvider.GetFont();
             label.fontSize = 24;
-            label.alignment = TextAlignmentOptions.Left;
+            label.alignment = TextAnchor.MiddleLeft;
             label.color = color;
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
             label.rectTransform.anchorMin = Vector2.zero;
             label.rectTransform.anchorMax = Vector2.one;
             label.rectTransform.offsetMin = new Vector2(18f, 0f);

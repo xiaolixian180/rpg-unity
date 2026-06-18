@@ -178,7 +178,7 @@ Assets/Resources/HeroQuest/Playable/Warrior_Male_Player.png
 ## 5.27日新增内容
 
 - 导入 `战士运动图.png` 为 `Warrior_Male_Walksheet.png`，并将白色背景处理为透明背景。
-- 新增 `GridSpriteSheetAnimator`，按 8x8 网格切帧，玩家移动时播放战士运动动画，静止时停留在首帧。
+- 新增 `GridSpriteSheetAnimator`，支持按角色配置的网格规格切帧，玩家移动时播放运动动画，静止时停留在首帧。
 - 动画帧会裁掉单格四周空白，玩家视觉高度调整为约 1.5 个地图格子。
 - 调整玩法原型场景比例：
   - 地图扩大到 `72 x 48`
@@ -289,6 +289,101 @@ Assets/Scenes/CharacterSelectScene.scene
 
 - `ProductFrameworkRulesTests`：覆盖装备品质倍率、技能默认倍率、宠物合成、PvP 掠夺、商店购买校验、交易行购买限制、资源重复采集等基础规则。
 
+## Unity-Go 联调协议层
+
+已根据 `rpg-go-main` 后端代码补充 Unity 客户端侧 Go 协议适配层，位置：
+
+```text
+Assets/HeroQuest/Runtime/Net/Go/
+```
+
+后端联调地址：
+
+```text
+ws://localhost:8080/ws
+```
+
+后端通信不是普通 JSON 字符串，而是 WebSocket Binary 帧：
+
+```text
+[2字节长度][2字节消息ID][JSON Body]
+```
+
+其中长度和消息 ID 都是大端序。Unity 侧新增：
+
+- `GoMessageIds`：对齐后端 `internal/protocol/msg_id.go`，包含登录、创角、进副本、移动、战斗、装备、宠物、交易、商店、技能、属性、排行榜和系统消息 ID。
+- `GoBinaryProtocolCodec`：负责 Go 二进制帧编码/解码，以及 JSON Body 的 UTF-8 转换。
+- `GoProtocolFrame`：保存解码后的 `messageId + body`。
+- `GoProtocolMessages`：预设登录、创角、玩家数据、进副本、怪物刷新、移动、攻击、采集、心跳等核心 DTO。
+- `GoWebSocketConnection`：基于 `ClientWebSocket` 的真实连接实现，发送 Binary 消息并接收服务端 Binary 推送。
+
+已新增测试：
+
+- `GoBinaryProtocolCodecTests`：覆盖大端帧头、消息 ID、登录 JSON 编码、进副本响应解码。
+
+注意：当前 Go 后端登录请求是：
+
+```json
+{"token":"JWT_TOKEN"}
+```
+
+不是账号密码 `test/test`。所以正式联调前需要后端提供测试 JWT，或后端增加测试账号换 token 的接口；Unity 当前登录 UI 仍保留本地测试账号，后续再替换为真实 token 登录流程。
+
+## 5.31日地图与小地图调整
+
+- 原型地图默认尺寸从 `72 x 48` 扩大到 `128 x 88`，并增加场景装饰数量，避免宽屏视野下左右露出黑边。
+- `PrototypeRuntimeInstaller` 会在运行时检查地图尺寸，旧场景没有重新生成时也会自动扩展地图。
+- `CameraFollow2D` 新增地图边界约束，主摄像机跟随玩家时不会拉到地图外。
+- 重新生成 `GameplayPrototypeScene` 时，场景生成器会直接创建大地图并绑定摄像机边界。
+- 小地图改为固定左上角 HUD，不随主摄像机缩放丢失。
+- 小地图 UI 改为圆形裁切，增加深色外圈、旧纸色边框、内圈黑线和玩家红点，整体更接近手绘生存游戏风格。
+- 新增 `CircleMaskGraphic`，用于 UGUI 圆形遮罩，不依赖外部图片资源。
+
+## 6.7日角色选择流程完善
+
+- 登录成功后的角色选择不再写死为战士，现支持战士、法师、弓箭手、牧师四种职业。
+- 每种职业均支持男性和女性角色选择。
+- 角色选择界面会展示对应立绘、职业定位和基础属性，并高亮当前选择的职业与性别。
+- 确认进入地图后，玩家会自动使用所选职业和性别对应的移动动画。
+- `CharacterDefinition` 新增左右移动动画资源路径，角色定义统一管理立绘与可玩动画资源。
+- 从根目录 `角色素材` 整理并导入 16 张职业男女移动图至：
+
+```text
+Assets/Resources/HeroQuest/Playable/
+```
+
+- 新增 `CharacterRosterTests`，检查所有可选职业的男女版本都配置了立绘和移动资源路径。
+- 根目录 `角色素材/` 已加入 `.gitignore`，避免执行 `git add .` 时重复上传源素材；实际游戏使用的资源位于 `Assets/Resources`，会正常提交。
+
+## 6.7日战斗 HUD 框架
+
+- 新增 `GameplayHudController`，进入地图后自动生成正式玩法 HUD 框架。
+- HUD 结构参考传统俯视角 RPG/MMO 操作界面，包含：
+  - 顶部状态条：游戏名、计时、背包、任务、队伍、设置入口。
+  - 左上角色头像：角色立绘、名称、HP/MP 条。
+  - 左侧战斗日志：系统、任务、技能提示等滚动占位。
+  - 底部主操作台：小地图底座、目标/属性面板、快捷栏、技能区、命令区。
+  - 右下基础命令：移动、攻击、技能、宠物、背包、锻造、商店、交易、排行。
+- HUD 按钮已具备点击反馈和事件预留，当前先写入日志占位，后续可逐步接入背包、技能、任务、宠物、商店、交易行等系统。
+- 小地图从左上角调整到底部 HUD 区域，与主操作台布局对齐。
+- 角色进入地图后，HUD 会展示当前选择的职业与性别。
+
+## 6.18日角色动画修复
+
+- 修复选择法师、弓箭手、牧师或女性角色后，进入地图仍显示战士男的问题。
+- `CharacterDefinition` 新增 `WalkColumns` 和 `WalkRows`，图集规格成为角色配置的一部分，不再由动画组件统一猜测。
+- 当前动作图规格：
+  - 战士男：`8 x 8`
+  - 战士女、法师、弓箭手、牧师的男/女版本：`6 x 5`
+- `PrototypeGameplayFlow` 进入地图时会把所选角色的立绘、左右动作路径和图集规格传给 `ProceduralCharacterRenderer`。
+- `ProceduralCharacterRenderer` 会按当前角色重建玩家视觉对象，不再保留默认战士男资源。
+- `GridSpriteSheetAnimator` 会按透明像素裁剪每一帧，并用同行有效帧填补图集中的空白格，避免角色闪烁或消失。
+- 角色世界高度统一为约 `1.5` 个地图格子，避免不同分辨率素材导致角色大小不一致。
+- 重新处理 16 张左右动作图：移除与图片边缘连通的浅色纸纹背景，并清理牧师素材中的横向黑色分隔线。
+- 动作图导入设置保持 `Sprite + Point + Mipmap Off + Alpha + Read/Write Enabled`，供运行时透明边界分析使用。
+- `CharacterRosterTests` 增加图集行列和角色动作资源唯一性检查。
+- 新增根目录 `AGENTS.md`，记录场景入口、角色素材契约、网络协议和验证要求；`agentn.md` 作为兼容入口。
+
 ## 后续扩展方向
 
 - 将产品文档中的职业、技能、怪物、副本、装备、宠物等表格整理为配置资产。
@@ -298,3 +393,24 @@ Assets/Scenes/CharacterSelectScene.scene
 - 先实现本地单人副本循环：移动、选怪、攻击、掉落、升级。
 - 再接入 WebSocket，多人在线相关逻辑改为服务端权威。
 - 逐步补齐装备、背包、宠物、PvP、交易行等独立模块。
+
+## 6.18日地图与野怪素材替换
+
+- 地图不再使用程序生成的方格草地、椭圆树冠和占位石块。
+- 新增素材背景 `HeroQuest/World/Grassland_Background`，运行时按地图边界等比放大并覆盖整个可移动区域。
+- 从素材库切分并透明化以下地图资源：
+  - 3 种树木
+  - 6 种草丛
+  - 2 种石头
+- 地图会按固定随机种子分布真实装饰素材，并保留玩家出生点周围的安全空地。
+- 小地图取消灰绿色叠色，直接显示地图和装饰物原色。
+- 野怪替换为 3 种素材库角色：荒原角兽、沼泽掠夺者、林地蜥蜴。
+- 野怪统一按世界高度缩放，并增加中文名称、阴影和生命条 UI。
+- 处理后的运行资源位于：
+
+```text
+Assets/Resources/HeroQuest/World/
+Assets/Resources/HeroQuest/Enemies/WildMonster_*.png
+```
+
+- 根目录 `q/` 仅保存原始大图，已加入 `.gitignore`；提交时只上传 `Assets/Resources` 中的处理结果。

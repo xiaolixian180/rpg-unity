@@ -25,7 +25,7 @@ namespace HeroQuest.Systems.Pets
         private static ServiceResult ValidatePetId(string petId)
         {
             return string.IsNullOrWhiteSpace(petId)
-                ? ServiceResult.Fail(GameErrorCode.PetNotFound, "Pet id is required.")
+                ? ServiceResult.Fail(GameErrorCode.PetNotFound, "宠物编号不能为空。")
                 : ServiceResult.Success();
         }
     }
