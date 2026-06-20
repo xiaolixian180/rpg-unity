@@ -19,8 +19,19 @@ namespace HeroQuest.UI.HUD
         private Image portraitImage;
         private Image hpFill;
         private Image mpFill;
+        private Text hpText;
+        private Text mpText;
         private Text clockText;
         private Text targetText;
+        private Text targetLevelText;
+        private Image targetHpFill;
+        private Text targetHpText;
+        private readonly List<Button> actionBarButtons = new();
+        private readonly List<Image> actionBarCooldowns = new();
+        private readonly List<Text> actionBarKeybinds = new();
+        private readonly List<Text> actionBarSlotLabels = new();
+        private readonly List<Text> consumableCounts = new();
+        private readonly List<Text> consumableNames = new();
 
         public event Action<int> SkillSlotClicked;
         public event Action<string> CommandClicked;
@@ -68,6 +79,12 @@ namespace HeroQuest.UI.HUD
             if (hpFill != null)
             {
                 hpFill.fillAmount = Mathf.Clamp01(hpPercent);
+                // HP 颜色：绿 > 60%，黄 30-60%，红 < 30%
+                hpFill.color = hpPercent > 0.6f
+                    ? new Color(0.20f, 0.72f, 0.20f, 1f)
+                    : hpPercent > 0.3f
+                        ? new Color(0.90f, 0.80f, 0.15f, 1f)
+                        : new Color(0.85f, 0.12f, 0.10f, 1f);
             }
 
             if (mpFill != null)
@@ -76,11 +93,39 @@ namespace HeroQuest.UI.HUD
             }
         }
 
-        public void SetTarget(string targetName)
+        public void SetVitalsText(long hp, long maxHp, long mp, long maxMp)
+        {
+            if (hpText != null)
+            {
+                hpText.text = $"{hp}/{maxHp}";
+            }
+
+            if (mpText != null)
+            {
+                mpText.text = $"{mp}/{maxMp}";
+            }
+        }
+
+        public void SetTarget(string targetName, int level, float hpPercent, long hp, long maxHp)
         {
             if (targetText != null)
             {
                 targetText.text = string.IsNullOrWhiteSpace(targetName) ? "无目标" : targetName;
+            }
+
+            if (targetLevelText != null)
+            {
+                targetLevelText.text = level > 0 ? $"Lv.{level}" : "";
+            }
+
+            if (targetHpFill != null)
+            {
+                targetHpFill.fillAmount = Mathf.Clamp01(hpPercent);
+            }
+
+            if (targetHpText != null)
+            {
+                targetHpText.text = level > 0 ? $"{hp}/{maxHp}" : "";
             }
         }
 
@@ -99,6 +144,42 @@ namespace HeroQuest.UI.HUD
             logLines[^1].text = message;
         }
 
+        public void SetActionBarCooldown(int slotIndex, float fraction)
+        {
+            if (slotIndex < 0 || slotIndex >= actionBarCooldowns.Count)
+            {
+                return;
+            }
+            actionBarCooldowns[slotIndex].fillAmount = Mathf.Clamp01(fraction);
+        }
+
+        public void UpdateActionBarSlot(int slotIndex, string label)
+        {
+            if (slotIndex < 0 || slotIndex >= actionBarSlotLabels.Count) return;
+            actionBarSlotLabels[slotIndex].text = label ?? "";
+        }
+
+        public void UpdateInventorySlot(int slot, string itemName, int count)
+        {
+            if (slot < 0 || slot >= consumableCounts.Count) return;
+            consumableCounts[slot].text = count > 0 ? $"x{count}" : "";
+            consumableNames[slot].text = count > 0 ? itemName : "";
+        }
+
+        public void ShowFloatingText(Vector3 worldPos, string text, Color color)
+        {
+            var go = new GameObject("FloatingText", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            var screenPos = Camera.main.WorldToScreenPoint(worldPos);
+            rect.anchoredPosition = screenPos;
+            var label = CreateLabel("Dmg", go.transform, text, 28, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(200f, 40f));
+            label.color = color;
+            var anim = go.AddComponent<FloatingTextAnimator>();
+            anim.label = label;
+            Destroy(go, 1.2f);
+        }
+
         private void Update()
         {
             if (clockText != null)
@@ -112,14 +193,14 @@ namespace HeroQuest.UI.HUD
         {
             BuildTopBar(root);
             BuildPlayerFrame(root);
+            BuildTargetFrame(root);
+            BuildActionBar(root);
             BuildChatLog(root);
-            BuildBottomBar(root);
 
             SetVitals(1f, 0.82f);
-            SetTarget("无目标");
+            SetTarget("", 0, 0, 0, 0);
             AddLog("[系统] 欢迎进入勇者远征。");
             AddLog("[任务] 探索荒野区域。");
-            AddLog("[提示] 技能栏已预留绑定入口。");
         }
 
         private void BuildTopBar(Transform root)
@@ -150,8 +231,97 @@ namespace HeroQuest.UI.HUD
 
             portraitImage = CreateImage("Portrait", frame.transform, new Color(0.09f, 0.07f, 0.08f, 1f), new Vector2(0.5f, 0.66f), new Vector2(78f, 64f));
             characterNameText = CreateLabel("Character Name", frame.transform, "角色", 16, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.31f), new Vector2(100f, 20f));
-            hpFill = CreateBar(frame.transform, "HP", new Vector2(0.5f, 0.16f), new Color(0.76f, 0.10f, 0.08f, 1f));
+            hpFill = CreateBar(frame.transform, "HP", new Vector2(0.5f, 0.16f), new Color(0.20f, 0.72f, 0.20f, 1f));
+            hpText = CreateLabel("HP Text", frame.transform, "0/0", 12, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.16f), new Vector2(84f, 10f));
             mpFill = CreateBar(frame.transform, "MP", new Vector2(0.5f, 0.06f), new Color(0.13f, 0.24f, 0.86f, 1f));
+            mpText = CreateLabel("MP Text", frame.transform, "0/0", 12, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.06f), new Vector2(84f, 10f));
+        }
+
+        private void BuildTargetFrame(Transform root)
+        {
+            var frame = CreatePanel("Target Frame", root, PanelDark, Border);
+            SetAnchor(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(320f, 64f), new Vector2(0f, -40f), new Vector2(0.5f, 1f));
+
+            targetText = CreateLabel("Target Name", frame.transform, "无目标", 20, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.7f), new Vector2(280f, 24f));
+            targetLevelText = CreateLabel("Target Level", frame.transform, "", 16, TextAnchor.MiddleCenter, new Vector2(0.08f, 0.7f), new Vector2(60f, 20f));
+            targetHpFill = CreateBar(frame.transform, "Target HP", new Vector2(0.5f, 0.25f), new Color(0.76f, 0.10f, 0.08f, 1f));
+            targetHpText = CreateLabel("Target HP Text", frame.transform, "", 14, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.25f), new Vector2(260f, 14f));
+        }
+
+        private void BuildActionBar(Transform root)
+        {
+            // WoW风格动作条：底部居中，12个槽位 (1-9, 0, -, =)
+            var actionBar = CreatePanel("Action Bar", root, PanelDark, Border);
+            SetAnchor(actionBar.rectTransform, new Vector2(0.5f, 0f), new Vector2(680f, 70f), new Vector2(0f, 16f), new Vector2(0.5f, 0f));
+
+            var keys = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=" };
+
+            for (var i = 0; i < 12; i++)
+            {
+                var index = i;
+                var slot = CreatePanel($"Slot {keys[i]}", actionBar.transform, new Color(0.08f, 0.12f, 0.10f, 1f), Border);
+                SetAnchor(slot.rectTransform, new Vector2(0.03f + i * 0.08f, 0.5f), new Vector2(48f, 48f), Vector2.zero, new Vector2(0.5f, 0.5f));
+
+                // 按键绑定标签（左上角）
+                var keybind = CreateLabel($"Key {keys[i]}", slot.transform, keys[i], 11, TextAnchor.UpperLeft, new Vector2(0.12f, 0.88f), new Vector2(20f, 14f));
+                keybind.color = new Color(0.78f, 0.58f, 0.22f, 1f);
+                actionBarKeybinds.Add(keybind);
+
+                // 技能/物品名称（居中）
+                var slotLabel = CreateLabel($"Label {keys[i]}", slot.transform, "", 11, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.4f), new Vector2(42f, 14f));
+                actionBarSlotLabels.Add(slotLabel);
+
+                // 冷却遮罩（扇形）
+                var cdOverlay = new GameObject($"CD {keys[i]}", typeof(RectTransform), typeof(Image));
+                cdOverlay.transform.SetParent(slot.transform, false);
+                var cdRect = cdOverlay.GetComponent<RectTransform>();
+                cdRect.anchorMin = Vector2.zero;
+                cdRect.anchorMax = Vector2.one;
+                cdRect.offsetMin = Vector2.zero;
+                cdRect.offsetMax = Vector2.zero;
+                var cdImage = cdOverlay.GetComponent<Image>();
+                cdImage.color = new Color(0.15f, 0.30f, 0.80f, 0.5f);
+                cdImage.type = Image.Type.Filled;
+                cdImage.fillMethod = Image.FillMethod.Radial360;
+                cdImage.fillClockwise = true;
+                cdImage.fillAmount = 0f;
+                actionBarCooldowns.Add(cdImage);
+
+                var btn = slot.GetComponent<Button>();
+                btn.onClick.AddListener(() =>
+                {
+                    SkillSlotClicked?.Invoke(index);
+                });
+                actionBarButtons.Add(btn);
+            }
+
+            // 经验条（动作条下方）
+            var xpBar = CreateImage("XP Bar", root, new Color(0.02f, 0.02f, 0.02f, 0.9f), new Vector2(0.5f, 0f), new Vector2(680f, 6f));
+            SetAnchor(xpBar.rectTransform, new Vector2(0.5f, 0f), new Vector2(680f, 6f), new Vector2(0f, 4f), new Vector2(0.5f, 0f));
+            var xpFill = new GameObject("XP Fill", typeof(RectTransform), typeof(Image));
+            xpFill.transform.SetParent(xpBar.transform, false);
+            var xpFillRect = xpFill.GetComponent<RectTransform>();
+            xpFillRect.anchorMin = Vector2.zero;
+            xpFillRect.anchorMax = Vector2.one;
+            xpFillRect.offsetMin = Vector2.zero;
+            xpFillRect.offsetMax = Vector2.zero;
+            var xpFillImage = xpFill.GetComponent<Image>();
+            xpFillImage.color = new Color(0.40f, 0.20f, 0.80f, 1f);
+            xpFillImage.type = Image.Type.Filled;
+            xpFillImage.fillMethod = Image.FillMethod.Horizontal;
+            xpFillImage.fillAmount = 0.3f;
+
+            // 微型菜单栏（动作条右侧）
+            var microKeys = new[] { "C", "P", "I", "M", "O" };
+            var microLabels = new[] { "角色", "技能", "背包", "地图", "社交" };
+            var microCommands = new[] { "角色", "技能", "背包", "地图", "社交" };
+            for (var i = 0; i < 5; i++)
+            {
+                var cmd = microCommands[i];
+                var btn = CreateButton($"Micro {microKeys[i]}", root, microLabels[i], new Vector2(0.82f + i * 0.035f, 0f), new Vector2(50f, 32f));
+                SetAnchor(btn.GetComponent<RectTransform>(), new Vector2(0.82f + i * 0.035f, 0f), new Vector2(50f, 32f), new Vector2(0f, 88f), new Vector2(0.5f, 0f));
+                btn.onClick.AddListener(() => CommandClicked?.Invoke(cmd));
+            }
         }
 
         private void BuildChatLog(Transform root)
@@ -164,72 +334,6 @@ namespace HeroQuest.UI.HUD
                 var line = CreateLabel($"Log Line {i}", chat.transform, string.Empty, 16, TextAnchor.MiddleLeft, new Vector2(0.5f, 0.88f - i * 0.105f), new Vector2(350f, 22f));
                 line.color = new Color(0.28f, 0.95f, 0.25f, 1f);
                 logLines.Add(line);
-            }
-        }
-
-        private void BuildBottomBar(Transform root)
-        {
-            var deck = CreatePanel("HUD Bottom Deck", root, PanelDark, Border);
-            SetStretch(deck.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 206f));
-
-            var miniFrame = CreatePanel("MiniMap Dock", deck.transform, Panel, Border);
-            SetAnchor(miniFrame.rectTransform, new Vector2(0f, 0f), new Vector2(360f, 184f), new Vector2(16f, 12f), Vector2.zero);
-            CreateLabel("MiniMap Dock Label", miniFrame.transform, "小地图", 16, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.95f), new Vector2(120f, 22f));
-
-            var info = CreatePanel("Character Info Dock", deck.transform, Panel, Border);
-            SetAnchor(info.rectTransform, new Vector2(0f, 0f), new Vector2(470f, 184f), new Vector2(392f, 12f), Vector2.zero);
-            targetText = CreateLabel("Target Text", info.transform, "无目标", 22, TextAnchor.MiddleLeft, new Vector2(0.5f, 0.77f), new Vector2(410f, 30f));
-            CreateLabel("Stats Text", info.transform, "攻击  397-419\n防御  62\n速度  34\n状态  就绪", 18, TextAnchor.MiddleLeft, new Vector2(0.50f, 0.42f), new Vector2(410f, 96f));
-
-            var quick = CreatePanel("Quick Bar", deck.transform, Panel, Border);
-            SetAnchor(quick.rectTransform, new Vector2(0.5f, 0f), new Vector2(510f, 70f), new Vector2(0f, 122f), new Vector2(0.5f, 0f));
-            for (var i = 0; i < 8; i++)
-            {
-                var index = i;
-                var button = CreateIconButton($"Quick {i + 1}", quick.transform, i + 1, new Vector2(0.08f + i * 0.12f, 0.5f), new Vector2(48f, 48f));
-                button.onClick.AddListener(() =>
-                {
-                    SkillSlotClicked?.Invoke(index);
-                    AddLog($"[技能] 已选择快捷栏 {index + 1}。");
-                });
-            }
-
-            var skills = CreatePanel("Skill Panel", deck.transform, Panel, Border);
-            SetAnchor(skills.rectTransform, new Vector2(1f, 0f), new Vector2(420f, 184f), new Vector2(-436f, 12f), new Vector2(1f, 0f));
-            for (var row = 0; row < 3; row++)
-            {
-                for (var col = 0; col < 4; col++)
-                {
-                    var index = row * 4 + col;
-                    var button = CreateIconButton($"Skill {index + 1}", skills.transform, index + 1, new Vector2(0.14f + col * 0.24f, 0.78f - row * 0.31f), new Vector2(68f, 48f));
-                    button.onClick.AddListener(() =>
-                    {
-                        SkillSlotClicked?.Invoke(index);
-                        AddLog($"[技能] 技能槽 {index + 1} 已预留。");
-                    });
-                }
-            }
-
-            var commands = CreatePanel("Command Panel", deck.transform, Panel, Border);
-            SetAnchor(commands.rectTransform, new Vector2(1f, 0f), new Vector2(344f, 184f), new Vector2(-84f, 12f), new Vector2(1f, 0f));
-            CreateCommandGrid(commands.transform);
-        }
-
-        private void CreateCommandGrid(Transform parent)
-        {
-            var commands = new[] { "移动", "攻击", "技能", "宠物", "背包", "锻造", "商店", "交易", "排行" };
-            for (var row = 0; row < 3; row++)
-            {
-                for (var col = 0; col < 3; col++)
-                {
-                    var command = commands[row * 3 + col];
-                    var button = CreateButton(command, parent, command, new Vector2(0.18f + col * 0.32f, 0.78f - row * 0.31f), new Vector2(86f, 48f));
-                    button.onClick.AddListener(() =>
-                    {
-                        CommandClicked?.Invoke(command);
-                        AddLog($"[界面] {command}指令已预留。");
-                    });
-                }
             }
         }
 
@@ -272,13 +376,6 @@ namespace HeroQuest.UI.HUD
             label.rectTransform.offsetMin = Vector2.zero;
             label.rectTransform.offsetMax = Vector2.zero;
             return buttonObject.GetComponent<Button>();
-        }
-
-        private Button CreateIconButton(string name, Transform parent, int index, Vector2 anchor, Vector2 size)
-        {
-            var button = CreateButton(name, parent, index.ToString(), anchor, size);
-            button.GetComponent<Image>().color = new Color(0.09f, 0.12f, 0.10f, 1f);
-            return button;
         }
 
         private Image CreateBar(Transform parent, string name, Vector2 anchor, Color fillColor)
@@ -329,6 +426,33 @@ namespace HeroQuest.UI.HUD
             rect.anchorMax = anchorMax;
             rect.offsetMin = offsetMin;
             rect.offsetMax = offsetMax;
+        }
+    }
+
+    internal sealed class FloatingTextAnimator : MonoBehaviour
+    {
+        internal Text label;
+        private float elapsed;
+        private Vector3 startPos;
+
+        private void Start()
+        {
+            startPos = transform.position;
+        }
+
+        private void Update()
+        {
+            elapsed += Time.deltaTime;
+            var t = elapsed / 1.2f;
+            // 向上漂浮
+            transform.position = startPos + Vector3.up * (t * 80f);
+            // 淡出
+            if (label != null)
+            {
+                var c = label.color;
+                c.a = Mathf.Lerp(1f, 0f, t);
+                label.color = c;
+            }
         }
     }
 }

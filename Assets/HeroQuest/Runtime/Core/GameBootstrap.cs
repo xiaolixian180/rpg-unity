@@ -1,4 +1,5 @@
 using HeroQuest.Config;
+using HeroQuest.Net.Go;
 using HeroQuest.Systems.Dungeon;
 using HeroQuest.Systems.Equipment;
 using HeroQuest.Systems.Inventory;
@@ -18,9 +19,30 @@ namespace HeroQuest.Core
         [SerializeField] private GameBalanceConfig balanceConfig;
         [SerializeField] private ProductRuleConfig productRuleConfig;
 
-        private void Awake()
+        private bool alreadyInitialized;
+
+        public static GameBootstrap Ensure()
         {
-            DontDestroyOnLoad(gameObject);
+            var existing = UnityEngine.Object.FindObjectOfType<GameBootstrap>();
+            if (existing != null)
+            {
+                existing.InitializeRegistry();
+                return existing;
+            }
+
+            var go = new GameObject("Game Bootstrap");
+            var bootstrap = go.AddComponent<GameBootstrap>();
+            bootstrap.InitializeRegistry();
+            return bootstrap;
+        }
+
+        private void InitializeRegistry()
+        {
+            if (alreadyInitialized)
+            {
+                return;
+            }
+            alreadyInitialized = true;
 
             ServiceRegistry.Clear();
 
@@ -35,6 +57,10 @@ namespace HeroQuest.Core
             }
 
             ServiceRegistry.Register<IEventBus>(new EventBus());
+
+            var networkManager = new NetworkManager();
+            ServiceRegistry.Register(networkManager);
+
             ServiceRegistry.Register<IInventoryService>(new InventoryServiceStub());
             ServiceRegistry.Register<IEquipmentService>(new EquipmentServiceStub());
             ServiceRegistry.Register<ISkillService>(new SkillServiceStub());
@@ -45,6 +71,20 @@ namespace HeroQuest.Core
             ServiceRegistry.Register<IRankingService>(new RankingServiceStub());
             ServiceRegistry.Register<ISaveService>(new SaveServiceStub());
             ServiceRegistry.Register<IDungeonResourceService>(new DungeonResourceServiceStub());
+        }
+
+        private void Awake()
+        {
+            InitializeRegistry();
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (ServiceRegistry.TryResolve<NetworkManager>(out var network))
+            {
+                network.Dispose();
+            }
         }
     }
 }

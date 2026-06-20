@@ -26,6 +26,11 @@ namespace HeroQuest.Net.Go
         public const ushort PlayerRevive = 1208;
         public const ushort CollectResource = 1209;
         public const ushort CollectResult = 1210;
+        public const ushort AutoBattle = 1211;
+        public const ushort AutoBattleResponse = 1212;
+        public const ushort UseItem = 1213;
+        public const ushort UseItemResponse = 1214;
+        public const ushort InventorySync = 1215;
 
         public const ushort EquipStrengthen = 1301;
         public const ushort EquipStrengthenResponse = 1302;
@@ -60,6 +65,10 @@ namespace HeroQuest.Net.Go
         public const ushort PetCompose = 1609;
         public const ushort PetComposeResponse = 1610;
         public const ushort PetRecallResponse = 1611;
+        public const ushort PetEquip = 1612;
+        public const ushort PetEquipResponse = 1613;
+        public const ushort PetUnequip = 1614;
+        public const ushort PetUnequipResponse = 1615;
 
         public const ushort TradeList = 1701;
         public const ushort TradeListResponse = 1702;
@@ -85,6 +94,27 @@ namespace HeroQuest.Net.Go
 
         public const ushort RankingList = 2101;
         public const ushort RankingListResponse = 2102;
+
+        public const ushort TeamCreate = 2201;
+        public const ushort TeamInfoResponse = 2202;
+        public const ushort TeamInvite = 2203;
+        public const ushort TeamInvitePush = 2204;
+        public const ushort TeamInviteReply = 2205;
+        public const ushort TeamInviteResult = 2206;
+        public const ushort TeamLeave = 2207;
+        public const ushort TeamLeaveResponse = 2208;
+        public const ushort TeamDismiss = 2209;
+        public const ushort TeamDismissResponse = 2210;
+        public const ushort TeamKick = 2211;
+        public const ushort TeamKickResponse = 2212;
+        public const ushort TeamQuery = 2213;
+        public const ushort TeamUpdate = 2214;
+
+        public const ushort ChatSend = 2301;
+        public const ushort ChatSendResponse = 2302;
+        public const ushort ChatMessage = 2303;
+        public const ushort ChatHistory = 2304;
+        public const ushort ChatHistoryResponse = 2305;
 
         public const ushort Broadcast = 9001;
         public const ushort Heartbeat = 9002;

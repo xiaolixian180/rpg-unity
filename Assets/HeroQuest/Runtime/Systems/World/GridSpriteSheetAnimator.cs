@@ -40,6 +40,7 @@ namespace HeroQuest.Systems.World
 
         public void Configure(string rightResourcePath, string leftResourcePath, int frameColumns, int frameRows)
         {
+            EnsureInitialized();
             rightTextureResourcePath = rightResourcePath;
             leftTextureResourcePath = leftResourcePath;
             columns = Mathf.Max(1, frameColumns);
@@ -68,11 +69,22 @@ namespace HeroQuest.Systems.World
 
         private void Awake()
         {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-            spriteRenderer.sortingOrder = sortingOrder;
-            transform.localScale = localScale;
-            controller = GetComponentInParent<TopDownPlayerController>();
+            EnsureInitialized();
             Configure(rightTextureResourcePath, leftTextureResourcePath);
+        }
+
+        private void EnsureInitialized()
+        {
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sortingOrder = sortingOrder;
+                }
+                transform.localScale = localScale;
+                controller = GetComponentInParent<TopDownPlayerController>();
+            }
         }
 
         private void Update()

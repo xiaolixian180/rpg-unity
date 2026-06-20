@@ -22,6 +22,15 @@ namespace HeroQuest.Systems.World
             EnsureMonsterSpawner(player);
             GameplayHudController.Ensure();
             EnsureMiniMap(player, mapBounds);
+            EnsureMultiplayerHud();
+        }
+
+        private static void EnsureMultiplayerHud()
+        {
+            // 已存在则跳过
+            if (Object.FindObjectOfType<MultiplayerHudOverlay>() != null) return;
+            var go = new GameObject("Multiplayer Hud Overlay");
+            go.AddComponent<MultiplayerHudOverlay>();
         }
 
         private static Bounds EnsureMapCoverage()
@@ -108,14 +117,14 @@ namespace HeroQuest.Systems.World
             var panel = new GameObject("MiniMap Root", typeof(RectTransform), typeof(Image));
             panel.transform.SetParent(canvasObject.transform, false);
             var panelRect = panel.GetComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.zero;
-            panelRect.pivot = Vector2.zero;
-            panelRect.anchoredPosition = new Vector2(102f, 30f);
+            panelRect.anchorMin = new Vector2(1f, 1f);
+            panelRect.anchorMax = new Vector2(1f, 1f);
+            panelRect.pivot = new Vector2(1f, 1f);
+            panelRect.anchoredPosition = new Vector2(-16f, -48f);
             panelRect.sizeDelta = new Vector2(150f, 150f);
             panel.GetComponent<Image>().color = new Color(0.01f, 0.012f, 0.01f, 0.78f);
 
-            var mask = new GameObject("MiniMap Circle Mask", typeof(RectTransform), typeof(CircleMaskGraphic), typeof(Mask));
+            var mask = new GameObject("MiniMap Circle Mask", typeof(RectTransform), typeof(CanvasRenderer), typeof(CircleMaskGraphic), typeof(Mask));
             mask.transform.SetParent(panel.transform, false);
             var maskRect = mask.GetComponent<RectTransform>();
             maskRect.anchorMin = Vector2.zero;

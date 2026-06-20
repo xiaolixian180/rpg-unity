@@ -1,5 +1,7 @@
 using System.Threading;
+using HeroQuest.Core;
 using HeroQuest.Net.Auth;
+using HeroQuest.Net.Go;
 using HeroQuest.UI.Core;
 using TMPro;
 using UnityEngine;
@@ -20,7 +22,8 @@ namespace HeroQuest.UI.Screens
 
         private void Awake()
         {
-            authService = new LocalTestAuthService();
+            ServiceRegistry.TryResolve<NetworkManager>(out var network);
+            authService = new LocalTestAuthService(network);
         }
 
         private void OnEnable()

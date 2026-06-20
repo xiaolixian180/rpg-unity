@@ -1,42 +1,43 @@
-using System;
 using System.Threading;
-using HeroQuest.Net;
-using HeroQuest.Net.Protocol;
+using HeroQuest.Core;
+using HeroQuest.Net.Go;
 using UnityEngine;
 
 namespace HeroQuest.Systems.World
 {
     public sealed class PrototypeNetworkClient : MonoBehaviour
     {
-        [SerializeField] private string playerId = "local-player";
-        [SerializeField] private string serverUrl = "ws://127.0.0.1:8080/ws";
         [SerializeField] private float moveSyncInterval = 0.25f;
         [SerializeField] private TopDownPlayerController playerController;
 
-        private IGameConnection connection;
+        private NetworkManager network;
         private float syncTimer;
+        private double lastSentX;
+        private double lastSentY;
+        private const double MoveThreshold = 0.01;
 
         public void SetPlayerController(TopDownPlayerController controller)
         {
             playerController = controller;
         }
 
-        private async void Start()
+        private void Start()
         {
             if (playerController == null)
             {
                 playerController = FindObjectOfType<TopDownPlayerController>();
             }
 
-            connection = new WebSocketConnectionPlaceholder();
-            connection.MessageReceived += OnMessageReceived;
-            await connection.ConnectAsync(new Uri(serverUrl), CancellationToken.None);
-            await connection.SendAsync(GameplayProtocolCodec.EncodeHello(playerId), CancellationToken.None);
+            if (ServiceRegistry.TryResolve<NetworkManager>(out var nm))
+            {
+                network = nm;
+                network.PlayerMove += OnPlayerMove;
+            }
         }
 
         private async void Update()
         {
-            if (connection == null || !connection.IsConnected || playerController == null)
+            if (network == null || !network.IsConnected || playerController == null)
             {
                 return;
             }
@@ -48,30 +49,33 @@ namespace HeroQuest.Systems.World
             }
 
             syncTimer = moveSyncInterval;
-            await connection.SendAsync(
-                GameplayProtocolCodec.EncodeMove(playerId, playerController.transform.position, playerController.MoveInput),
-                CancellationToken.None);
-        }
 
-        private void OnDestroy()
-        {
-            if (connection == null)
+            var pos = playerController.transform.position;
+            var dx = (double)pos.x - lastSentX;
+            var dy = (double)pos.y - lastSentY;
+            if (dx * dx + dy * dy < MoveThreshold * MoveThreshold)
             {
                 return;
             }
 
-            connection.MessageReceived -= OnMessageReceived;
-            connection.Dispose();
-            connection = null;
+            lastSentX = (double)pos.x;
+            lastSentY = (double)pos.y;
+            await network.SendMoveAsync(lastSentX, lastSentY, CancellationToken.None);
         }
 
-        private void OnMessageReceived(string payload)
+        private void OnDestroy()
         {
-            if (payload.Contains("\"spawn_monster\"", StringComparison.Ordinal))
+            if (network != null)
             {
-                var message = GameplayProtocolCodec.DecodeMonsterSpawn(payload);
-                Debug.Log($"Monster spawn from server: {message.monsterId} at ({message.positionX}, {message.positionY})");
+                network.PlayerMove -= OnPlayerMove;
             }
+        }
+
+        private void OnPlayerMove(ulong pid, double x, double y)
+        {
+            // TODO: update other player positions in the world
+            // For now, log movement of other players
+            Debug.Log($"[Net] Player {pid} moved to ({x:F2}, {y:F2})");
         }
     }
 }

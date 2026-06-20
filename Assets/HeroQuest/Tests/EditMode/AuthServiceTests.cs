@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks;
 using HeroQuest.Net.Auth;
 using NUnit.Framework;
 
@@ -7,25 +6,19 @@ namespace HeroQuest.Tests
 {
     public sealed class AuthServiceTests
     {
+        /// <summary>
+        /// 在 EditMode 下没有真实服务器，但 LocalTestAuthService 在账号/密码不匹配时
+        /// 应在触碰网络之前直接返回失败结果。
+        /// </summary>
         [Test]
-        public async Task LocalTestAuthService_AcceptsTestAccount()
+        public void LocalTestAuthService_RejectsWrongPassword()
         {
-            var service = new LocalTestAuthService();
+            var service = new LocalTestAuthService(null);
 
-            var result = await service.LoginAsync("test", "test", CancellationToken.None);
-
-            Assert.IsTrue(result.Success);
-            Assert.AreEqual("local-test-player", result.PlayerId);
-        }
-
-        [Test]
-        public async Task LocalTestAuthService_RejectsWrongPassword()
-        {
-            var service = new LocalTestAuthService();
-
-            var result = await service.LoginAsync("test", "wrong", CancellationToken.None);
+            var result = service.LoginAsync("test", "wrong", CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.IsFalse(result.Success);
+            Assert.AreEqual("账号或密码错误", result.Message);
         }
 
         [Test]

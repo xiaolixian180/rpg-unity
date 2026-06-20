@@ -19,11 +19,11 @@ namespace HeroQuest.Domain
         Weapon = 0,
         Helmet = 1,
         Armor = 2,
-        Necklace = 3,
-        Ring = 4,
-        Belt = 5,
-        Boots = 6,
-        Accessory = 7
+        Gloves = 3,
+        Boots = 4,
+        Necklace = 5,
+        Ring1 = 6,
+        Ring2 = 7
     }
 
     public enum Quality
