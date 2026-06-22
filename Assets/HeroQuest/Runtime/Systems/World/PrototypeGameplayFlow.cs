@@ -88,6 +88,8 @@ namespace HeroQuest.Systems.World
 
         private void Update()
         {
+            network?.PumpMainThread();
+
             if (activeLoginButton != null && Input.GetKeyDown(KeyCode.Return))
             {
                 activeLoginButton.onClick.Invoke();
@@ -1284,6 +1286,18 @@ namespace HeroQuest.Systems.World
             }
             localPlayerData = player;
             playerId = player.id;
+
+            // 服务端 toPlayerData() 不下发 hp/max_hp/mp/max_mp，客户端本地计算初始值
+            if (player.max_hp <= 0)
+            {
+                player.max_hp = 100 + player.con * 20 + player.level * 50;
+                player.hp = player.max_hp;
+            }
+            if (player.max_mp <= 0)
+            {
+                player.max_mp = 50 + player.@int * 15 + player.level * 20;
+                player.mp = player.max_mp;
+            }
 
             // 更新玩家 HP/MP 条
             var hp = player.hp;

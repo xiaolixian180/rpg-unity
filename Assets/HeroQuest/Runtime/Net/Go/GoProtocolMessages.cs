@@ -306,7 +306,7 @@ namespace HeroQuest.Net.Go
     public sealed class GoPlayerDieInfo
     {
         public ulong player_id;
-        public string killer_name;
+        public ulong killer_id;
     }
 
     // --- Equipment ---
@@ -902,5 +902,62 @@ namespace HeroQuest.Net.Go
         public uint code;
         public int channel;
         public GoChatMessage[] messages;
+    }
+
+    // --- Boss ---
+
+    [Serializable]
+    public sealed class GoBossSpawn
+    {
+        public ulong boss_id;
+        public string name;
+        public long hp;
+        public long max_hp;
+        public int layer;
+        public double x;
+        public double y;
+        public GoBossSkillData[] skills;
+    }
+
+    [Serializable]
+    public sealed class GoBossSkillData
+    {
+        public int skill_id;
+        public string name;
+        public double cd;
+        public double range;
+    }
+
+    [Serializable]
+    public sealed class GoBossDie
+    {
+        public ulong boss_id;
+        public GoDropItem[] drops;
+    }
+
+    // --- Player Die / Revive ---
+
+    [Serializable]
+    public sealed class GoPlayerDie
+    {
+        public ulong player_id;
+        public ulong killer_id;
+    }
+
+    [Serializable]
+    public sealed class GoPlayerRevive
+    {
+        public ulong player_id;
+        public long hp;
+        public double x;
+        public double y;
+    }
+
+    // --- Leave Dungeon ---
+
+    [Serializable]
+    public sealed class GoLeaveDungeonResponse
+    {
+        public uint code;
     }
 }
