@@ -41,6 +41,8 @@ namespace HeroQuest.Systems.World
         private TeamPanelView teamPanelView;
         private ChatPanelView chatPanelView;
         private PetPanelView petPanelView;
+        private ForgePanelView forgePanelView;
+        private ulong pendingWearEquipId; // 穿戴请求时暂存 equipId，响应后用于更新本地状态
 
         // 动作条绑定（12个槽位：0=技能/普攻，1=消耗品）
         private enum BarSlotType { Empty, Skill, Item }
@@ -172,6 +174,13 @@ namespace HeroQuest.Systems.World
             if (Input.GetKeyDown(KeyCode.Y))
             {
                 TogglePetPanelView();
+                return;
+            }
+
+            // F = 锻造面板
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ToggleForgePanelView();
                 return;
             }
 
@@ -1386,7 +1395,8 @@ namespace HeroQuest.Systems.World
                 {
                     if (network != null)
                     {
-                        _ = network.SendEquipEnchantAsync((int)slot, 0, CancellationToken.None);
+                        // 使用默认附魔材料 ID 2001，后续背包系统完善后改为材料选择器
+                        _ = network.SendEquipEnchantAsync((int)slot, 2001, CancellationToken.None);
                         hud?.AddLog($"[装备] 请求附魔 {slot} 槽。");
                     }
                 };
@@ -1672,6 +1682,36 @@ namespace HeroQuest.Systems.World
             hud?.AddLog("[宠物] 打开宠物面板。");
         }
 
+        private void ToggleForgePanelView()
+        {
+            if (forgePanelView == null)
+            {
+                forgePanelView = ForgePanelView.Create(flowCanvas);
+                forgePanelView.OnCloseRequested += () => forgePanelView.Hide();
+                forgePanelView.OnForgeRequested += (recipeId, materials) =>
+                {
+                    if (network != null)
+                    {
+                        _ = network.SendForgeAsync(recipeId, materials, CancellationToken.None);
+                        hud?.AddLog($"[锻造] 请求锻造配方 {recipeId}...");
+                    }
+                };
+            }
+
+            if (forgePanelView.gameObject.activeSelf)
+            {
+                forgePanelView.Hide();
+                return;
+            }
+
+            // 传入玩家等级和金币
+            int level = localPlayerData != null ? localPlayerData.level : 1;
+            long gold = localPlayerData != null ? localPlayerData.gold : 0;
+            forgePanelView.SetPlayerInfo(level, gold);
+            forgePanelView.Show();
+            hud?.AddLog("[锻造] 打开锻造面板。");
+        }
+
         private void SetGameplayEnabled(bool enabled)
         {
             gameplayActive = enabled;
@@ -1815,6 +1855,55 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[装备] 槽位{resp.slot} 穿戴成功");
+
+            // 更新本地装备数据：构造简化的 EquipmentData
+            if (localPlayerData != null && pendingWearEquipId > 0)
+            {
+                if (localPlayerData.equipment == null)
+                    localPlayerData.equipment = new GoEquipmentData[8];
+
+                // 查找模板数据
+                int equipId = (int)pendingWearEquipId;
+                if (ForgePanelView.EquipTemplates.TryGetValue(equipId, out var tmpl))
+                {
+                    var eq = new GoEquipmentData
+                    {
+                        slot = resp.slot,
+                        equip_id = equipId,
+                        name = tmpl.name,
+                        quality = tmpl.quality,
+                        strengthen_level = 0,
+                        enchant_attr = "",
+                        base_atk = tmpl.baseAtk,
+                        base_def = tmpl.baseDef,
+                        base_hp = tmpl.baseHp,
+                        require_level = tmpl.requireLevel
+                    };
+                    // 替换或添加
+                    bool replaced = false;
+                    for (int i = 0; i < localPlayerData.equipment.Length; i++)
+                    {
+                        if (localPlayerData.equipment[i] != null && localPlayerData.equipment[i].slot == resp.slot)
+                        {
+                            localPlayerData.equipment[i] = eq;
+                            replaced = true;
+                            break;
+                        }
+                    }
+                    if (!replaced)
+                    {
+                        for (int i = 0; i < localPlayerData.equipment.Length; i++)
+                        {
+                            if (localPlayerData.equipment[i] == null)
+                            {
+                                localPlayerData.equipment[i] = eq;
+                                break;
+                            }
+                        }
+                    }
+                }
+                pendingWearEquipId = 0;
+            }
             RefreshCharacterPanelIfVisible();
         }
 
@@ -1826,6 +1915,19 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[装备] 槽位{resp.slot} 卸下成功");
+
+            // 从本地装备数据中移除该槽位
+            if (localPlayerData != null && localPlayerData.equipment != null)
+            {
+                for (int i = 0; i < localPlayerData.equipment.Length; i++)
+                {
+                    if (localPlayerData.equipment[i] != null && localPlayerData.equipment[i].slot == resp.slot)
+                    {
+                        localPlayerData.equipment[i] = null;
+                        break;
+                    }
+                }
+            }
             RefreshCharacterPanelIfVisible();
         }
 
@@ -1834,11 +1936,22 @@ namespace HeroQuest.Systems.World
             if (resp.code != 0)
             {
                 hud?.AddLog($"[锻造] 锻造失败: code={resp.code}");
+                forgePanelView?.ApplyForgeResult(resp.code, "", 0);
                 return;
             }
             var qualityNames = new[] { "白", "绿", "蓝", "紫", "橙", "红" };
             var q = resp.quality >= 0 && resp.quality < qualityNames.Length ? qualityNames[resp.quality] : "?";
             hud?.AddLog($"[锻造] 锻造成功: [{q}] {resp.result_name}");
+
+            // 更新锻造面板结果
+            forgePanelView?.ApplyForgeResult(resp.code, resp.result_name, resp.quality);
+
+            // 扣除金币（从当前选中的配方获取费用）
+            if (localPlayerData != null && forgePanelView != null)
+            {
+                // 锻造费用已在 ForgePanelView 中显示，这里只刷新角色面板
+            }
+            RefreshCharacterPanelIfVisible();
         }
 
         // --- PvP ---
@@ -2157,6 +2270,12 @@ namespace HeroQuest.Systems.World
             {
                 Destroy(petPanelView.gameObject);
                 petPanelView = null;
+            }
+
+            if (forgePanelView != null)
+            {
+                Destroy(forgePanelView.gameObject);
+                forgePanelView = null;
             }
         }
 
