@@ -92,6 +92,20 @@ namespace HeroQuest.Net.Go
         // Ranking
         public event Action<GoRankingListResponse> RankingListResult;
 
+        // Team
+        public event Action<GoTeamInfoResponse> TeamInfoResult;
+        public event Action<GoTeamInvitePush> TeamInvitePushReceived;
+        public event Action<GoTeamInviteResult> TeamInviteResultReceived;
+        public event Action<GoTeamLeaveResponse> TeamLeaveResult;
+        public event Action<GoTeamDismissResponse> TeamDismissResult;
+        public event Action<GoTeamKickResponse> TeamKickResult;
+        public event Action<GoTeamUpdate> TeamUpdateReceived;
+
+        // Chat
+        public event Action<GoChatSendResponse> ChatSendResult;
+        public event Action<GoChatMessage> ChatMessageReceived;
+        public event Action<GoChatHistoryResponse> ChatHistoryResult;
+
         // Movement
         public event Action<ulong, double, double> PlayerMove;
 
@@ -286,6 +300,28 @@ namespace HeroQuest.Net.Go
 
         public Task SendChatHistoryAsync(int channel, int count, CancellationToken ct)
             => connection.SendJsonAsync(GoMessageIds.ChatHistory, new GoChatHistoryRequest { channel = channel, count = count }, ct);
+
+        // --- Team ---
+        public Task SendTeamCreateAsync(CancellationToken ct)
+            => connection.SendAsync(GoMessageIds.TeamCreate, Array.Empty<byte>(), ct);
+
+        public Task SendTeamInviteAsync(ulong targetId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.TeamInvite, new GoTeamInviteRequest { target_id = targetId }, ct);
+
+        public Task SendTeamInviteReplyAsync(ulong teamId, bool accept, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.TeamInviteReply, new GoTeamInviteReplyRequest { team_id = teamId, accept = accept }, ct);
+
+        public Task SendTeamLeaveAsync(CancellationToken ct)
+            => connection.SendAsync(GoMessageIds.TeamLeave, Array.Empty<byte>(), ct);
+
+        public Task SendTeamDismissAsync(CancellationToken ct)
+            => connection.SendAsync(GoMessageIds.TeamDismiss, Array.Empty<byte>(), ct);
+
+        public Task SendTeamKickAsync(ulong targetId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.TeamKick, new GoTeamKickRequest { target_id = targetId }, ct);
+
+        public Task SendTeamQueryAsync(CancellationToken ct)
+            => connection.SendAsync(GoMessageIds.TeamQuery, Array.Empty<byte>(), ct);
 
         // ================================================================
         // 接收分发
@@ -594,6 +630,70 @@ namespace HeroQuest.Net.Go
                     {
                         var r = GoBinaryProtocolCodec.DecodeJson<GoRankingListResponse>(frame);
                         RankingListResult?.Invoke(r);
+                        break;
+                    }
+
+                    // --- Team ---
+                    case GoMessageIds.TeamInfoResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamInfoResponse>(frame);
+                        TeamInfoResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamInvitePush:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamInvitePush>(frame);
+                        TeamInvitePushReceived?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamInviteResult:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamInviteResult>(frame);
+                        TeamInviteResultReceived?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamLeaveResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamLeaveResponse>(frame);
+                        TeamLeaveResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamDismissResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamDismissResponse>(frame);
+                        TeamDismissResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamKickResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamKickResponse>(frame);
+                        TeamKickResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.TeamUpdate:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoTeamUpdate>(frame);
+                        TeamUpdateReceived?.Invoke(r);
+                        break;
+                    }
+
+                    // --- Chat ---
+                    case GoMessageIds.ChatSendResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoChatSendResponse>(frame);
+                        ChatSendResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.ChatMessage:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoChatMessage>(frame);
+                        ChatMessageReceived?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.ChatHistoryResponse:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoChatHistoryResponse>(frame);
+                        ChatHistoryResult?.Invoke(r);
                         break;
                     }
 

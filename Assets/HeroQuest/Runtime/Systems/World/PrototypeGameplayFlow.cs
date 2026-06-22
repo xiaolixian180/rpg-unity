@@ -38,6 +38,9 @@ namespace HeroQuest.Systems.World
         private ulong selectedTargetId;
         private GoPlayerData localPlayerData;
         private CharacterPanelView characterPanelView;
+        private TeamPanelView teamPanelView;
+        private ChatPanelView chatPanelView;
+        private PetPanelView petPanelView;
 
         // 动作条绑定（12个槽位：0=技能/普攻，1=消耗品）
         private enum BarSlotType { Empty, Skill, Item }
@@ -155,6 +158,27 @@ namespace HeroQuest.Systems.World
             if (Input.GetKeyDown(KeyCode.O))
             {
                 hud?.AddLog("[系统] 社交面板开发中。");
+                return;
+            }
+
+            // T = 队伍面板
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                ToggleTeamPanelView();
+                return;
+            }
+
+            // Y = 宠物面板
+            if (Input.GetKeyDown(KeyCode.Y))
+            {
+                TogglePetPanelView();
+                return;
+            }
+
+            // Enter = 聊天面板（仅在非聊天输入框聚焦时触发）
+            if (Input.GetKeyDown(KeyCode.Return) && !IsChatInputFocused())
+            {
+                ToggleChatPanelView();
                 return;
             }
 
@@ -484,6 +508,20 @@ namespace HeroQuest.Systems.World
 
             // Ranking
             network.RankingListResult += OnRankingListResult;
+
+            // Team
+            network.TeamInfoResult += OnTeamInfoResult;
+            network.TeamInvitePushReceived += OnTeamInvitePush;
+            network.TeamInviteResultReceived += OnTeamInviteResult;
+            network.TeamLeaveResult += OnTeamLeaveResult;
+            network.TeamDismissResult += OnTeamDismissResult;
+            network.TeamKickResult += OnTeamKickResult;
+            network.TeamUpdateReceived += OnTeamUpdate;
+
+            // Chat
+            network.ChatSendResult += OnChatSendResult;
+            network.ChatMessageReceived += OnChatMessage;
+            network.ChatHistoryResult += OnChatHistoryResult;
         }
 
         private void OnDestroy()
@@ -539,6 +577,16 @@ namespace HeroQuest.Systems.World
                 network.SkillResetResult -= OnSkillResetResult;
                 network.AttrAssignResult -= OnAttrAssignResult;
                 network.RankingListResult -= OnRankingListResult;
+                network.TeamInfoResult -= OnTeamInfoResult;
+                network.TeamInvitePushReceived -= OnTeamInvitePush;
+                network.TeamInviteResultReceived -= OnTeamInviteResult;
+                network.TeamLeaveResult -= OnTeamLeaveResult;
+                network.TeamDismissResult -= OnTeamDismissResult;
+                network.TeamKickResult -= OnTeamKickResult;
+                network.TeamUpdateReceived -= OnTeamUpdate;
+                network.ChatSendResult -= OnChatSendResult;
+                network.ChatMessageReceived -= OnChatMessage;
+                network.ChatHistoryResult -= OnChatHistoryResult;
             }
         }
 
@@ -1373,14 +1421,263 @@ namespace HeroQuest.Systems.World
 
         private void ToggleTeamPanel()
         {
-            var overlay = FindObjectOfType<MultiplayerHudOverlay>();
-            if (overlay != null)
+            ToggleTeamPanelView();
+        }
+
+        // ================================================================
+        // 组队面板
+        // ================================================================
+
+        private void ToggleTeamPanelView()
+        {
+            if (teamPanelView == null)
             {
-                overlay.ToggleTeamPanel();
+                teamPanelView = TeamPanelView.Create(flowCanvas);
+                teamPanelView.SetCurrentPlayerId(playerId);
+                teamPanelView.OnCloseRequested += () => teamPanelView.Hide();
+                teamPanelView.OnCreateTeamRequested += () =>
+                {
+                    if (network != null) _ = network.SendTeamCreateAsync(CancellationToken.None);
+                    hud?.AddLog("[队伍] 请求创建队伍。");
+                };
+                teamPanelView.OnInviteRequested += id =>
+                {
+                    if (network != null) _ = network.SendTeamInviteAsync(id, CancellationToken.None);
+                    hud?.AddLog($"[队伍] 邀请玩家 {id}。");
+                };
+                teamPanelView.OnKickRequested += id =>
+                {
+                    if (network != null) _ = network.SendTeamKickAsync(id, CancellationToken.None);
+                    hud?.AddLog($"[队伍] 踢出玩家 {id}。");
+                };
+                teamPanelView.OnLeaveTeamRequested += () =>
+                {
+                    if (network != null) _ = network.SendTeamLeaveAsync(CancellationToken.None);
+                    hud?.AddLog("[队伍] 请求离开队伍。");
+                };
+                teamPanelView.OnDismissTeamRequested += () =>
+                {
+                    if (network != null) _ = network.SendTeamDismissAsync(CancellationToken.None);
+                    hud?.AddLog("[队伍] 请求解散队伍。");
+                };
+                teamPanelView.OnInviteReplyRequested += (teamId, accept) =>
+                {
+                    if (network != null) _ = network.SendTeamInviteReplyAsync(teamId, accept, CancellationToken.None);
+                    hud?.AddLog($"[队伍] {(accept ? "接受" : "拒绝")}邀请。");
+                };
             }
-            else
+
+            if (teamPanelView.gameObject.activeSelf)
             {
-                hud?.AddLog("[系统] 组队面板未初始化。");
+                teamPanelView.Hide();
+                return;
+            }
+
+            // 查询当前队伍状态
+            if (network != null) _ = network.SendTeamQueryAsync(CancellationToken.None);
+            teamPanelView.ApplyNoTeam();
+            teamPanelView.Show();
+            hud?.AddLog("[队伍] 打开组队面板。");
+        }
+
+        private void OnTeamInfoResult(GoTeamInfoResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[队伍] 操作失败: code={resp.code}");
+                if (teamPanelView != null && teamPanelView.gameObject.activeSelf)
+                    teamPanelView.ApplyNoTeam();
+                return;
+            }
+            if (teamPanelView != null && teamPanelView.gameObject.activeSelf)
+            {
+                if (resp.team != null && resp.team.members != null && resp.team.members.Length > 0)
+                    teamPanelView.ApplyTeamInfo(resp.team);
+                else
+                    teamPanelView.ApplyNoTeam();
+            }
+            if (resp.team != null && resp.team.members != null)
+                hud?.AddLog($"[队伍] 队伍信息更新: {resp.team.member_count}人");
+        }
+
+        private void OnTeamInvitePush(GoTeamInvitePush push)
+        {
+            hud?.AddLog($"[队伍] {push.inviter_name} 邀请你加入队伍！");
+            if (teamPanelView == null || !teamPanelView.gameObject.activeSelf)
+            {
+                ToggleTeamPanelView();
+            }
+            teamPanelView?.ApplyInviteNotification(push);
+        }
+
+        private void OnTeamInviteResult(GoTeamInviteResult resp)
+        {
+            var result = resp.accept ? "接受了邀请" : "拒绝了邀请";
+            hud?.AddLog($"[队伍] {resp.target_name} {result}");
+        }
+
+        private void OnTeamLeaveResult(GoTeamLeaveResponse resp)
+        {
+            if (resp.code != 0) { hud?.AddLog($"[队伍] 离开失败: code={resp.code}"); return; }
+            hud?.AddLog("[队伍] 已离开队伍。");
+            if (teamPanelView != null && teamPanelView.gameObject.activeSelf)
+                teamPanelView.ApplyNoTeam();
+        }
+
+        private void OnTeamDismissResult(GoTeamDismissResponse resp)
+        {
+            if (resp.code != 0) { hud?.AddLog($"[队伍] 解散失败: code={resp.code}"); return; }
+            hud?.AddLog("[队伍] 队伍已解散。");
+            teamPanelView?.Hide();
+        }
+
+        private void OnTeamKickResult(GoTeamKickResponse resp)
+        {
+            if (resp.code != 0) { hud?.AddLog($"[队伍] 踢出失败: code={resp.code}"); return; }
+            hud?.AddLog($"[队伍] 已踢出玩家 {resp.target_id}。");
+        }
+
+        private void OnTeamUpdate(GoTeamUpdate update)
+        {
+            hud?.AddLog($"[队伍] {update.reason}");
+            if (teamPanelView != null && teamPanelView.gameObject.activeSelf)
+            {
+                if (update.action == 3) // 解散
+                    teamPanelView.ApplyNoTeam();
+                else if (update.members != null)
+                {
+                    var info = new GoTeamInfo
+                    {
+                        team_id = update.team_id,
+                        leader_id = update.leader_id,
+                        member_count = update.members.Length,
+                        members = update.members
+                    };
+                    teamPanelView.ApplyTeamInfo(info);
+                }
+            }
+        }
+
+        // ================================================================
+        // 聊天面板
+        // ================================================================
+
+        private void ToggleChatPanelView()
+        {
+            if (chatPanelView == null)
+            {
+                chatPanelView = ChatPanelView.Create(flowCanvas);
+                chatPanelView.SetCurrentPlayer(playerId);
+                chatPanelView.OnCloseRequested += () => chatPanelView.Hide();
+                chatPanelView.OnSendRequested += (channel, targetId, content) =>
+                {
+                    if (network != null && !string.IsNullOrWhiteSpace(content))
+                        _ = network.SendChatSendAsync(channel, targetId, content, CancellationToken.None);
+                };
+                chatPanelView.OnHistoryRequested += (channel, count) =>
+                {
+                    if (network != null) _ = network.SendChatHistoryAsync(channel, count, CancellationToken.None);
+                };
+                chatPanelView.OnPrivateChatRequested += (targetId, targetName) =>
+                {
+                    hud?.AddLog($"[聊天] 切换到私聊 {targetName}");
+                };
+            }
+
+            if (chatPanelView.gameObject.activeSelf)
+            {
+                chatPanelView.Hide();
+                return;
+            }
+
+            chatPanelView.Show();
+            // 打开时自动拉取世界频道历史
+            if (network != null) _ = network.SendChatHistoryAsync(1, 50, CancellationToken.None);
+            hud?.AddLog("[聊天] 打开聊天面板。");
+        }
+
+        private bool IsChatInputFocused()
+        {
+            if (chatPanelView == null || !chatPanelView.gameObject.activeSelf) return false;
+            var current = EventSystem.current?.currentSelectedGameObject;
+            if (current == null) return false;
+            return current.GetComponent<UnityEngine.UI.InputField>() != null;
+        }
+
+        private void OnChatSendResult(GoChatSendResponse resp)
+        {
+            if (resp.code != 0)
+                hud?.AddLog($"[聊天] 发送失败: code={resp.code}");
+        }
+
+        private void OnChatMessage(GoChatMessage msg)
+        {
+            chatPanelView?.AddMessage(msg.channel, msg.sender_name, msg.sender_id, msg.content, msg.timestamp, msg.target_id);
+            // 不在聊天面板时，HUD 也显示世界频道消息
+            if (msg.channel == 1 && (chatPanelView == null || !chatPanelView.gameObject.activeSelf))
+                hud?.AddLog($"[世界] {msg.sender_name}: {msg.content}");
+        }
+
+        private void OnChatHistoryResult(GoChatHistoryResponse resp)
+        {
+            if (resp.code != 0) { hud?.AddLog($"[聊天] 历史加载失败: code={resp.code}"); return; }
+            chatPanelView?.LoadHistory(resp.messages);
+        }
+
+        // ================================================================
+        // 宠物面板
+        // ================================================================
+
+        private void TogglePetPanelView()
+        {
+            if (petPanelView == null)
+            {
+                petPanelView = PetPanelView.Create(flowCanvas);
+                petPanelView.OnCloseRequested += () => petPanelView.Hide();
+                petPanelView.OnSummonRequested += uid =>
+                {
+                    if (network != null) _ = network.SendPetSummonAsync(uid, CancellationToken.None);
+                    hud?.AddLog($"[宠物] 召唤出战。");
+                };
+                petPanelView.OnRecallRequested += uid =>
+                {
+                    if (network != null) _ = network.SendPetRecallAsync(uid, CancellationToken.None);
+                    hud?.AddLog($"[宠物] 召回。");
+                };
+                petPanelView.OnLevelUpRequested += uid =>
+                {
+                    if (network != null) _ = network.SendPetLevelUpAsync(uid, CancellationToken.None);
+                    hud?.AddLog($"[宠物] 请求升级。");
+                };
+                petPanelView.OnEvolveRequested += uid =>
+                {
+                    if (network != null) _ = network.SendPetEvolveAsync(uid, CancellationToken.None);
+                    hud?.AddLog($"[宠物] 请求进化。");
+                };
+                petPanelView.OnExploreRequested += (uid, duration) =>
+                {
+                    if (network != null) _ = network.SendPetExploreAsync(uid, duration, CancellationToken.None);
+                    hud?.AddLog($"[宠物] 派遣探索 {duration} 分钟。");
+                };
+            }
+
+            if (petPanelView.gameObject.activeSelf)
+            {
+                petPanelView.Hide();
+                return;
+            }
+
+            petPanelView.ApplyNoPets();
+            petPanelView.Show();
+            hud?.AddLog("[宠物] 打开宠物面板。");
+        }
+
+        private void SetGameplayEnabled(bool enabled)
+        {
+            gameplayActive = enabled;
+            if (playerController != null)
+            {
+                playerController.SetInputEnabled(enabled);
             }
         }
 
@@ -1830,15 +2127,6 @@ namespace HeroQuest.Systems.World
             }
         }
 
-        private void SetGameplayEnabled(bool enabled)
-        {
-            gameplayActive = enabled;
-            if (playerController != null)
-            {
-                playerController.SetInputEnabled(enabled);
-            }
-        }
-
         private void ClearPanels()
         {
             activeLoginButton = null;
@@ -1851,6 +2139,24 @@ namespace HeroQuest.Systems.World
             if (characterPanel != null)
             {
                 Destroy(characterPanel);
+            }
+
+            if (teamPanelView != null)
+            {
+                Destroy(teamPanelView.gameObject);
+                teamPanelView = null;
+            }
+
+            if (chatPanelView != null)
+            {
+                Destroy(chatPanelView.gameObject);
+                chatPanelView = null;
+            }
+
+            if (petPanelView != null)
+            {
+                Destroy(petPanelView.gameObject);
+                petPanelView = null;
             }
         }
 
