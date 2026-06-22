@@ -1879,6 +1879,21 @@ namespace HeroQuest.Systems.World
                         base_hp = tmpl.baseHp,
                         require_level = tmpl.requireLevel
                     };
+                    // 填充技能特效
+                    if (tmpl.skillEffects != null && tmpl.skillEffects.Length > 0)
+                    {
+                        eq.skill_effects = new GoSkillEffectData[tmpl.skillEffects.Length];
+                        for (int j = 0; j < tmpl.skillEffects.Length; j++)
+                        {
+                            eq.skill_effects[j] = new GoSkillEffectData
+                            {
+                                skill_id = tmpl.skillEffects[j].skillId,
+                                effect_type = tmpl.skillEffects[j].effectType,
+                                value = tmpl.skillEffects[j].value,
+                                desc = tmpl.skillEffects[j].desc
+                            };
+                        }
+                    }
                     // 替换或添加
                     bool replaced = false;
                     for (int i = 0; i < localPlayerData.equipment.Length; i++)

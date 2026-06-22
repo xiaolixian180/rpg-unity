@@ -151,7 +151,7 @@ namespace HeroQuest.UI.Screens
         }
 
         /// <summary>
-        /// 填充装备栏数据，根据品质着色，显示强化等级和附魔属性。
+        /// 填充装备栏数据，根据品质着色，显示强化等级、附魔属性和技能特效。
         /// </summary>
         public void ApplyEquipment(GoEquipmentData[] equipment)
         {
@@ -162,6 +162,7 @@ namespace HeroQuest.UI.Screens
                 {
                     slotTexts[i].text = $"{SlotNames[i]}: 空";
                     slotTexts[i].color = new Color(0.5f, 0.5f, 0.5f, 1f);
+                    slotTexts[i].supportRichText = false;
                 }
                 if (strengthenBtns[i] != null) strengthenBtns[i].interactable = false;
                 if (enchantBtns[i] != null) enchantBtns[i].interactable = false;
@@ -178,6 +179,21 @@ namespace HeroQuest.UI.Screens
                 string label = $"{SlotNames[slot]}: {eq.name}";
                 if (eq.strengthen_level > 0)
                     label += $" +{eq.strengthen_level}";
+
+                // 技能特效摘要
+                if (eq.skill_effects != null && eq.skill_effects.Length > 0)
+                {
+                    label += " <color=#FFD700>★(";
+                    for (int i = 0; i < eq.skill_effects.Length; i++)
+                    {
+                        if (i > 0) label += " ";
+                        label += eq.skill_effects[i].desc;
+                    }
+                    label += ")</color>";
+
+                    if (slotTexts[slot] != null)
+                        slotTexts[slot].supportRichText = true;
+                }
 
                 if (slotTexts[slot] != null)
                 {

@@ -326,6 +326,16 @@ namespace HeroQuest.Net.Go
         public long base_def;
         public long base_hp;
         public int require_level;
+        public GoSkillEffectData[] skill_effects;
+    }
+
+    [Serializable]
+    public sealed class GoSkillEffectData
+    {
+        public int skill_id;
+        public int effect_type;
+        public float value;
+        public string desc;
     }
 
     // --- Equipment ---

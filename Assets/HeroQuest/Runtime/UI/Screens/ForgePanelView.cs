@@ -69,6 +69,7 @@ namespace HeroQuest.UI.Screens
             public long baseDef;
             public long baseHp;
             public int requireLevel;
+            public (int skillId, int effectType, float value, string desc)[] skillEffects;
         }
 
         public static readonly Dictionary<int, EquipTemplateData> EquipTemplates = new Dictionary<int, EquipTemplateData>
@@ -78,20 +79,25 @@ namespace HeroQuest.UI.Screens
             { 2, new EquipTemplateData { id = 2, name = "铁剑", quality = 0, baseAtk = 12, baseDef = 0, baseHp = 0, requireLevel = 5 } },
             { 3, new EquipTemplateData { id = 3, name = "精钢长剑", quality = 1, baseAtk = 25, baseDef = 2, baseHp = 0, requireLevel = 10 } },
             { 4, new EquipTemplateData { id = 4, name = "暗影之刃", quality = 2, baseAtk = 45, baseDef = 5, baseHp = 0, requireLevel = 20 } },
-            { 5, new EquipTemplateData { id = 5, name = "龙牙剑", quality = 3, baseAtk = 80, baseDef = 10, baseHp = 50, requireLevel = 30 } },
-            { 6, new EquipTemplateData { id = 6, name = "天罚圣剑", quality = 4, baseAtk = 130, baseDef = 15, baseHp = 100, requireLevel = 45 } },
+            { 5, new EquipTemplateData { id = 5, name = "龙牙剑", quality = 3, baseAtk = 80, baseDef = 10, baseHp = 50, requireLevel = 30,
+                skillEffects = new[] { (1, 1, 0.15f, "旋风斩技能增伤+15%") } } },
+            { 6, new EquipTemplateData { id = 6, name = "天罚圣剑", quality = 4, baseAtk = 130, baseDef = 15, baseHp = 100, requireLevel = 45,
+                skillEffects = new[] { (0, 1, 0.20f, "所有技能技能增伤+20%") } } },
             // 头盔
             { 10, new EquipTemplateData { id = 10, name = "布帽", quality = 0, baseAtk = 0, baseDef = 3, baseHp = 10, requireLevel = 1 } },
             { 11, new EquipTemplateData { id = 11, name = "铁头盔", quality = 0, baseAtk = 0, baseDef = 8, baseHp = 30, requireLevel = 5 } },
             { 12, new EquipTemplateData { id = 12, name = "秘银头盔", quality = 1, baseAtk = 0, baseDef = 18, baseHp = 60, requireLevel = 10 } },
-            { 13, new EquipTemplateData { id = 13, name = "暗夜兜帽", quality = 2, baseAtk = 5, baseDef = 30, baseHp = 100, requireLevel = 20 } },
-            { 14, new EquipTemplateData { id = 14, name = "战神之冠", quality = 3, baseAtk = 10, baseDef = 50, baseHp = 180, requireLevel = 30 } },
+            { 13, new EquipTemplateData { id = 13, name = "暗夜兜帽", quality = 2, baseAtk = 5, baseDef = 30, baseHp = 100, requireLevel = 20,
+                skillEffects = new[] { (0, 1, 0.05f, "所有技能技能增伤+5%") } } },
+            { 14, new EquipTemplateData { id = 14, name = "战神之冠", quality = 3, baseAtk = 10, baseDef = 50, baseHp = 180, requireLevel = 30,
+                skillEffects = new[] { (0, 1, 0.10f, "所有技能技能增伤+10%") } } },
             // 铠甲
             { 20, new EquipTemplateData { id = 20, name = "布衣", quality = 0, baseAtk = 0, baseDef = 5, baseHp = 20, requireLevel = 1 } },
             { 21, new EquipTemplateData { id = 21, name = "铁甲", quality = 0, baseAtk = 0, baseDef = 15, baseHp = 50, requireLevel = 5 } },
             { 22, new EquipTemplateData { id = 22, name = "精钢战甲", quality = 1, baseAtk = 0, baseDef = 30, baseHp = 100, requireLevel = 10 } },
             { 23, new EquipTemplateData { id = 23, name = "暗影铠甲", quality = 2, baseAtk = 5, baseDef = 30, baseHp = 100, requireLevel = 20 } },
-            { 24, new EquipTemplateData { id = 24, name = "龙鳞铠甲", quality = 3, baseAtk = 10, baseDef = 90, baseHp = 300, requireLevel = 30 } },
+            { 24, new EquipTemplateData { id = 24, name = "龙鳞铠甲", quality = 3, baseAtk = 10, baseDef = 90, baseHp = 300, requireLevel = 30,
+                skillEffects = new[] { (0, 1, 0.08f, "所有技能技能增伤+8%") } } },
             // 手套
             { 30, new EquipTemplateData { id = 30, name = "布手套", quality = 0, baseAtk = 2, baseDef = 2, baseHp = 0, requireLevel = 1 } },
             { 31, new EquipTemplateData { id = 31, name = "铁手套", quality = 0, baseAtk = 5, baseDef = 5, baseHp = 0, requireLevel = 5 } },
