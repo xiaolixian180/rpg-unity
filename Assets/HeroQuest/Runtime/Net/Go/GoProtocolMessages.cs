@@ -46,6 +46,7 @@ namespace HeroQuest.Net.Go
         public int agi;
         public int @int;
         public int con;
+        public int def;
         public int attr_points;
         public int max_layer;
         public long hp;
@@ -53,6 +54,7 @@ namespace HeroQuest.Net.Go
         public long mp;
         public long max_mp;
         public Dictionary<uint, int> items;
+        public GoEquipmentData[] equipment;
     }
 
     [Serializable]
@@ -307,6 +309,23 @@ namespace HeroQuest.Net.Go
     {
         public ulong player_id;
         public ulong killer_id;
+    }
+
+    // --- Equipment Data (随 PlayerData 下发) ---
+
+    [Serializable]
+    public sealed class GoEquipmentData
+    {
+        public int slot;
+        public int equip_id;
+        public string name;
+        public int quality;
+        public int strengthen_level;
+        public string enchant_attr;
+        public long base_atk;
+        public long base_def;
+        public long base_hp;
+        public int require_level;
     }
 
     // --- Equipment ---

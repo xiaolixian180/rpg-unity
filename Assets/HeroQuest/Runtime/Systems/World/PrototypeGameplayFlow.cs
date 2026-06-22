@@ -1350,6 +1350,14 @@ namespace HeroQuest.Systems.World
                         hud?.AddLog($"[装备] 请求卸下 {slot} 槽。");
                     }
                 };
+                characterPanelView.OnAttrAssignRequested += attr =>
+                {
+                    if (network != null)
+                    {
+                        _ = network.SendAttrAssignAsync(attr, 1, CancellationToken.None);
+                        hud?.AddLog($"[属性] 请求分配 {attr} +1。");
+                    }
+                };
             }
 
             if (characterPanelView.gameObject.activeSelf)
@@ -1387,10 +1395,10 @@ namespace HeroQuest.Systems.World
             string classLabel = "战士";
             int level = 1;
             long exp = 0;
-            int str = 0, agi = 0, intel = 0, con = 0;
+            int str = 0, agi = 0, intel = 0, con = 0, defVal = 0;
             int attrPoints = 0;
-            int maxLayer = 0;
             int gold = 0, honor = 0;
+            GoEquipmentData[] equipment = null;
 
             if (localPlayerData != null)
             {
@@ -1402,29 +1410,51 @@ namespace HeroQuest.Systems.World
                 agi = localPlayerData.agi;
                 intel = localPlayerData.@int;
                 con = localPlayerData.con;
+                defVal = localPlayerData.def;
                 attrPoints = localPlayerData.attr_points;
-                maxLayer = localPlayerData.max_layer;
                 gold = (int)localPlayerData.gold;
                 honor = localPlayerData.honor;
+                equipment = localPlayerData.equipment;
             }
 
-            // 简易属性派生：与后端公式一致（攻击=Str*2+Level*5+Agi*0.5）
-            int atk = Mathf.RoundToInt(str * 2 + level * 5 + agi * 0.5f);
-            int def = Mathf.RoundToInt(con * 1.5f + level * 1.5f);
-            int spd = agi;
-            int crt = Mathf.RoundToInt(agi * 3 + str); // 0.1% 单位
-            int hp = 100 + con * 20 + level * 50;
+            // 基础属性（不含装备）
+            int baseAtk = Mathf.RoundToInt(str * 2 + level * 5 + agi * 0.5f);
+            int baseDef = Mathf.RoundToInt(defVal * 3 + con * 1 + level * 2);
+
+            // 装备加成：遍历 equipment 数组，按强化公式 base*(1+level*0.1) 累加
+            int equipAtk = 0, equipDef = 0, equipHp = 0;
+            if (equipment != null)
+            {
+                foreach (var eq in equipment)
+                {
+                    if (eq == null) continue;
+                    float mul = 1.0f + eq.strengthen_level * 0.1f;
+                    equipAtk += Mathf.RoundToInt(eq.base_atk * mul);
+                    equipDef += Mathf.RoundToInt(eq.base_def * mul);
+                    equipHp += Mathf.RoundToInt(eq.base_hp * mul);
+                }
+            }
+
+            int totalAtk = baseAtk + equipAtk;
+            int totalDef = baseDef + equipDef;
+            int hp = 100 + con * 20 + level * 50 + str * 5 + defVal * 3 + equipHp;
             int mp = 50 + intel * 15 + level * 20;
-            int power = atk * 3 + def * 2 + hp + level * 10;
+            int spd = agi;
+            float crtRate = agi * 0.3f + str * 0.1f; // 百分比
+            int power = totalAtk * 3 + totalDef * 2 + hp + level * 10;
 
             long expNext = 100L * level * level;
             characterPanelView.ApplyCharacter(
                 name, classLabel, level, exp, expNext,
                 hp, hp, mp, mp,
-                Mathf.Max(1, atk - 5), atk + 5, def, spd, crt, power, gold, honor);
+                baseAtk, equipAtk,
+                baseDef, equipDef,
+                equipHp,
+                str, agi, intel, con, defVal,
+                spd, crtRate, power,
+                gold, honor, attrPoints);
 
-            // 装备快照（暂未由网络下发，留空等待服务端推送）
-            characterPanelView.ApplyEquipment(null);
+            characterPanelView.ApplyEquipment(equipment);
         }
 
         private void OnEquipStrengthenResult(GoEquipStrengthenResponse resp)
@@ -1436,6 +1466,24 @@ namespace HeroQuest.Systems.World
             }
             var success = resp.is_success ? "成功" : "失败";
             hud?.AddLog($"[装备] 槽位{resp.slot} 强化{success}，等级→{resp.new_level}，消耗{resp.cost_gold}金币");
+
+            // 更新本地装备数据以便面板立即刷新
+            if (localPlayerData != null && resp.is_success)
+            {
+                if (localPlayerData.equipment != null)
+                {
+                    foreach (var eq in localPlayerData.equipment)
+                    {
+                        if (eq != null && eq.slot == resp.slot)
+                        {
+                            eq.strengthen_level = resp.new_level;
+                            break;
+                        }
+                    }
+                }
+                localPlayerData.gold -= resp.cost_gold;
+            }
+            RefreshCharacterPanelIfVisible();
         }
 
         private void OnEquipEnchantResult(GoEquipEnchantResponse resp)
@@ -1446,6 +1494,20 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[装备] 槽位{resp.slot} 附魔成功: {resp.attr_name}+{resp.attr_val}");
+
+            // 更新本地装备附魔属性
+            if (localPlayerData != null && localPlayerData.equipment != null)
+            {
+                foreach (var eq in localPlayerData.equipment)
+                {
+                    if (eq != null && eq.slot == resp.slot)
+                    {
+                        eq.enchant_attr = $"{resp.attr_name}+{resp.attr_val}";
+                        break;
+                    }
+                }
+            }
+            RefreshCharacterPanelIfVisible();
         }
 
         private void OnEquipWearResult(GoEquipWearResponse resp)
@@ -1456,6 +1518,7 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[装备] 槽位{resp.slot} 穿戴成功");
+            RefreshCharacterPanelIfVisible();
         }
 
         private void OnEquipUnloadResult(GoEquipUnloadResponse resp)
@@ -1466,6 +1529,7 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[装备] 槽位{resp.slot} 卸下成功");
+            RefreshCharacterPanelIfVisible();
         }
 
         private void OnForgeResult(GoForgeResponse resp)
@@ -1727,6 +1791,20 @@ namespace HeroQuest.Systems.World
                 return;
             }
             hud?.AddLog($"[属性] {resp.attr}+{resp.val}，剩余{resp.attr_points}点");
+            RefreshCharacterPanelIfVisible();
+        }
+
+        /// <summary>
+        /// 如果角色面板当前可见，则重新填充数据（装备/属性变更后调用）。
+        /// 注意：装备变更仅返回 slot/level 等简要信息，完整装备数据需要等服务端重新下发 PlayerData。
+        /// 这里先用本地已有数据刷新，等后续 LoginResult 事件到达时会自动再次刷新。
+        /// </summary>
+        private void RefreshCharacterPanelIfVisible()
+        {
+            if (characterPanelView != null && characterPanelView.gameObject.activeSelf)
+            {
+                PopulateCharacterPanel();
+            }
         }
 
         // --- Ranking ---
