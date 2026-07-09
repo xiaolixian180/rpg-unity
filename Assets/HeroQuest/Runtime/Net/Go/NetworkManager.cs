@@ -106,6 +106,22 @@ namespace HeroQuest.Net.Go
         public event Action<GoChatMessage> ChatMessageReceived;
         public event Action<GoChatHistoryResponse> ChatHistoryResult;
 
+        // Raid
+        public event Action<GoRaidEnterResponse> RaidEnterResult;
+        public event Action<GoRaidLeaveResponse> RaidLeaveResult;
+        public event Action<GoRaidInfo> RaidInfoReceived;
+        public event Action<GoRaidExtractResponse> RaidExtractResult;
+        public event Action<GoRaidExtractProgress> RaidExtractProgress;
+        public event Action<GoRaidLootOpenResponse> RaidLootOpenResult;
+        public event Action<GoRaidLootPickupResponse> RaidLootPickupResult;
+        public event Action<GoRaidLootDiscardResponse> RaidLootDiscardResult;
+        public event Action<GoRaidInventory> RaidInventorySync;
+        public event Action<GoRaidDeath> RaidDeath;
+        public event Action<GoRaidTimer> RaidTimer;
+        public event Action<GoRaidPvpResult> RaidPvpResult;
+        public event Action<GoRaidMapListResponse> RaidMapListResult;
+        public event Action<GoRaidStashResponse> RaidStashResult;
+
         // Movement
         public event Action<ulong, double, double> PlayerMove;
 
@@ -322,6 +338,34 @@ namespace HeroQuest.Net.Go
 
         public Task SendTeamQueryAsync(CancellationToken ct)
             => connection.SendAsync(GoMessageIds.TeamQuery, Array.Empty<byte>(), ct);
+
+        // --- Raid ---
+        public Task SendRaidEnterAsync(int mapId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidEnter, new GoRaidEnterRequest { map_id = mapId }, ct);
+
+        public Task SendRaidLeaveAsync(CancellationToken ct)
+            => connection.SendAsync(GoMessageIds.MsgIDRaidLeave, Array.Empty<byte>(), ct);
+
+        public Task SendRaidExtractAsync(int pointId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidExtract, new GoRaidExtractRequest { point_id = pointId }, ct);
+
+        public Task SendRaidLootOpenAsync(ulong containerId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidLootOpen, new GoRaidLootOpenRequest { container_id = containerId }, ct);
+
+        public Task SendRaidLootPickupAsync(int index, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidLootPickup, new GoRaidLootPickupRequest { item_index = index }, ct);
+
+        public Task SendRaidLootDiscardAsync(int index, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidLootDiscard, new GoRaidLootDiscardRequest { item_index = index }, ct);
+
+        public Task SendRaidPvpAttackAsync(ulong targetId, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidPvpAttack, new GoRaidPvpAttackRequest { target_id = targetId }, ct);
+
+        public Task SendRaidMapListAsync(CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidMapList, new GoRaidMapListRequest(), ct);
+
+        public Task SendRaidStashAsync(CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.MsgIDRaidStash, new GoRaidStashRequest(), ct);
 
         // ================================================================
         // 接收分发
@@ -694,6 +738,98 @@ namespace HeroQuest.Net.Go
                     {
                         var r = GoBinaryProtocolCodec.DecodeJson<GoChatHistoryResponse>(frame);
                         ChatHistoryResult?.Invoke(r);
+                        break;
+                    }
+
+                    // --- Raid ---
+                    case GoMessageIds.MsgIDRaidEnterResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidEnterResponse>(frame);
+                        RaidEnterResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidLeaveResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidLeaveResponse>(frame);
+                        RaidLeaveResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidInfo:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidInfo>(frame);
+                        RaidInfoReceived?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidExtractResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidExtractResponse>(frame);
+                        RaidExtractResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidExtractProgress:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidExtractProgress>(frame);
+                        RaidExtractProgress?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidLootOpenResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidLootOpenResponse>(frame);
+                        RaidLootOpenResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidLootPickupResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidLootPickupResponse>(frame);
+                        RaidLootPickupResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidLootDiscardResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidLootDiscardResponse>(frame);
+                        RaidLootDiscardResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidInventory:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidInventory>(frame);
+                        RaidInventorySync?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidDeath:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidDeath>(frame);
+                        RaidDeath?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidTimer:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidTimer>(frame);
+                        RaidTimer?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidMonsterRefresh:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoMonsterRefresh>(frame);
+                        MonsterRefresh?.Invoke(r.monsters);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidPvpResult:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidPvpResult>(frame);
+                        RaidPvpResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidMapListResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidMapListResponse>(frame);
+                        RaidMapListResult?.Invoke(r);
+                        break;
+                    }
+                    case GoMessageIds.MsgIDRaidStashResp:
+                    {
+                        var r = GoBinaryProtocolCodec.DecodeJson<GoRaidStashResponse>(frame);
+                        RaidStashResult?.Invoke(r);
                         break;
                     }
 

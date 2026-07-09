@@ -42,6 +42,10 @@ namespace HeroQuest.Systems.World
         private ChatPanelView chatPanelView;
         private PetPanelView petPanelView;
         private ForgePanelView forgePanelView;
+        private RaidLobbyPanelView raidLobbyPanelView;
+        private RaidHudOverlay raidHudOverlay;
+        private RaidInventoryPanelView raidInventoryPanelView;
+        private bool isInRaid; // 是否在战局中
         private ulong pendingWearEquipId; // 穿戴请求时暂存 equipId，响应后用于更新本地状态
 
         // 动作条绑定（12个槽位：0=技能/普攻，1=消耗品）
@@ -181,6 +185,20 @@ namespace HeroQuest.Systems.World
             if (Input.GetKeyDown(KeyCode.F))
             {
                 ToggleForgePanelView();
+                return;
+            }
+
+            // N = 战局大厅
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                ToggleRaidLobbyPanelView();
+                return;
+            }
+
+            // R = 战局背包（战局内）
+            if (Input.GetKeyDown(KeyCode.R) && isInRaid)
+            {
+                ToggleRaidInventoryPanelView();
                 return;
             }
 
@@ -531,6 +549,20 @@ namespace HeroQuest.Systems.World
             network.ChatSendResult += OnChatSendResult;
             network.ChatMessageReceived += OnChatMessage;
             network.ChatHistoryResult += OnChatHistoryResult;
+
+            // Raid
+            network.RaidEnterResult += OnRaidEnterResult;
+            network.RaidLeaveResult += OnRaidLeaveResult;
+            network.RaidTimer += OnRaidTimer;
+            network.RaidDeath += OnRaidDeath;
+            network.RaidExtractResult += OnRaidExtractResult;
+            network.RaidExtractProgress += OnRaidExtractProgress;
+            network.RaidLootOpenResult += OnRaidLootOpenResult;
+            network.RaidLootPickupResult += OnRaidLootPickupResult;
+            network.RaidLootDiscardResult += OnRaidLootDiscardResult;
+            network.RaidInventorySync += OnRaidInventorySync;
+            network.RaidPvpResult += OnRaidPvpResult;
+            network.RaidMapListResult += OnRaidMapListResult;
         }
 
         private void OnDestroy()
@@ -596,6 +628,19 @@ namespace HeroQuest.Systems.World
                 network.ChatSendResult -= OnChatSendResult;
                 network.ChatMessageReceived -= OnChatMessage;
                 network.ChatHistoryResult -= OnChatHistoryResult;
+                // Raid
+                network.RaidEnterResult -= OnRaidEnterResult;
+                network.RaidLeaveResult -= OnRaidLeaveResult;
+                network.RaidTimer -= OnRaidTimer;
+                network.RaidDeath -= OnRaidDeath;
+                network.RaidExtractResult -= OnRaidExtractResult;
+                network.RaidExtractProgress -= OnRaidExtractProgress;
+                network.RaidLootOpenResult -= OnRaidLootOpenResult;
+                network.RaidLootPickupResult -= OnRaidLootPickupResult;
+                network.RaidLootDiscardResult -= OnRaidLootDiscardResult;
+                network.RaidInventorySync -= OnRaidInventorySync;
+                network.RaidPvpResult -= OnRaidPvpResult;
+                network.RaidMapListResult -= OnRaidMapListResult;
             }
         }
 
@@ -2292,6 +2337,26 @@ namespace HeroQuest.Systems.World
                 Destroy(forgePanelView.gameObject);
                 forgePanelView = null;
             }
+
+            if (raidLobbyPanelView != null)
+            {
+                Destroy(raidLobbyPanelView.gameObject);
+                raidLobbyPanelView = null;
+            }
+
+            if (raidHudOverlay != null)
+            {
+                Destroy(raidHudOverlay.gameObject);
+                raidHudOverlay = null;
+            }
+
+            if (raidInventoryPanelView != null)
+            {
+                Destroy(raidInventoryPanelView.gameObject);
+                raidInventoryPanelView = null;
+            }
+
+            isInRaid = false;
         }
 
         private GameObject CreatePanel(string name, Color color)
@@ -2391,6 +2456,181 @@ namespace HeroQuest.Systems.World
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
             rectTransform.anchoredPosition = Vector2.zero;
             rectTransform.sizeDelta = sizeDelta;
+        }
+
+        // --- 战局 ---
+
+        private void ToggleRaidLobbyPanelView()
+        {
+            if (raidLobbyPanelView != null)
+            {
+                Destroy(raidLobbyPanelView.gameObject);
+                raidLobbyPanelView = null;
+                return;
+            }
+            raidLobbyPanelView = RaidLobbyPanelView.Create(flowCanvas);
+            raidLobbyPanelView.OnCloseRequested += ToggleRaidLobbyPanelView;
+            raidLobbyPanelView.OnRaidEnterRequested += OnRaidEnterRequested;
+            raidLobbyPanelView.OnStashRequested += () => network.SendRaidStash();
+            network.SendRaidMapList();
+        }
+
+        private void ToggleRaidInventoryPanelView()
+        {
+            if (raidInventoryPanelView != null)
+            {
+                Destroy(raidInventoryPanelView.gameObject);
+                raidInventoryPanelView = null;
+                return;
+            }
+            raidInventoryPanelView = RaidInventoryPanelView.Create(flowCanvas);
+            raidInventoryPanelView.OnCloseRequested += ToggleRaidInventoryPanelView;
+            raidInventoryPanelView.OnDiscardRequested += idx => network.SendRaidLootDiscard(idx);
+        }
+
+        private void OnRaidEnterRequested(int templateId)
+        {
+            network.SendRaidEnter(templateId);
+        }
+
+        private void OnRaidEnterResult(GoRaidEnterResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局] 进入失败: code={resp.code}");
+                return;
+            }
+            hud?.AddLog($"[战局] 进入 {resp.map_name}，限时 {resp.duration / 60} 分钟");
+            isInRaid = true;
+
+            // 关闭大厅面板
+            if (raidLobbyPanelView != null)
+            {
+                Destroy(raidLobbyPanelView.gameObject);
+                raidLobbyPanelView = null;
+            }
+
+            // 创建战局HUD
+            if (raidHudOverlay == null)
+            {
+                raidHudOverlay = RaidHudOverlay.Create(flowCanvas);
+                raidHudOverlay.OnRaidInventoryRequested += ToggleRaidInventoryPanelView;
+            }
+            raidHudOverlay.SetTimer(resp.duration);
+            raidHudOverlay.Show();
+        }
+
+        private void OnRaidLeaveResult(GoRaidLeaveResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局] 离开失败: code={resp.code}");
+                return;
+            }
+            hud?.AddLog("[战局] 已离开战局");
+            ExitRaidState();
+        }
+
+        private void OnRaidTimer(GoRaidTimer timer)
+        {
+            raidHudOverlay?.SetTimer(timer.remaining);
+        }
+
+        private void OnRaidDeath(GoRaidDeath death)
+        {
+            hud?.AddLog($"[战局] 死亡 ({death.reason})，战利品已丢失");
+            ExitRaidState();
+        }
+
+        private void OnRaidExtractResult(GoRaidExtractResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局] 撤离失败: code={resp.code}");
+                return;
+            }
+            hud?.AddLog($"[战局] 撤离倒计时: {resp.timer} 秒");
+            raidHudOverlay?.SetExtractDuration(resp.timer);
+            raidHudOverlay?.SetExtraction(resp.timer, true);
+        }
+
+        private void OnRaidExtractProgress(GoRaidExtractProgress prog)
+        {
+            raidHudOverlay?.SetExtraction(prog.timer, prog.timer > 0);
+            if (prog.timer <= 0)
+            {
+                hud?.AddLog("[战局] 撤离成功！战利品已保留");
+                ExitRaidState();
+            }
+        }
+
+        private void OnRaidLootOpenResult(GoRaidLootOpenResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局] 打开容器失败: code={resp.code}");
+                return;
+            }
+            if (resp.items != null)
+            {
+                hud?.AddLog($"[战局] 容器中发现 {resp.items.Length} 件物品");
+                for (int i = 0; i < resp.items.Length; i++)
+                {
+                    hud?.AddLog($"  #{i} {resp.items[i].name} x{resp.items[i].count}");
+                }
+            }
+        }
+
+        private void OnRaidLootPickupResult(GoRaidLootPickupResponse resp)
+        {
+            if (resp.code != 0)
+                hud?.AddLog($"[战局] 拾取失败: code={resp.code}");
+            else
+                hud?.AddLog("[战局] 拾取成功");
+        }
+
+        private void OnRaidLootDiscardResult(GoRaidLootDiscardResponse resp)
+        {
+            if (resp.code != 0)
+                hud?.AddLog($"[战局] 丢弃失败: code={resp.code}");
+            else
+                hud?.AddLog("[战局] 已丢弃物品");
+        }
+
+        private void OnRaidInventorySync(GoRaidInventory inv)
+        {
+            raidInventoryPanelView?.SetItems(inv.items);
+        }
+
+        private void OnRaidPvpResult(GoRaidPvpResult resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局PvP] 攻击失败: code={resp.code}");
+                return;
+            }
+            hud?.AddLog($"[战局PvP] 对目标造成 {resp.damage} 伤害{(resp.is_dead ? "（击杀）" : "")}");
+        }
+
+        private void OnRaidMapListResult(GoRaidMapListResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[战局] 获取地图列表失败: code={resp.code}");
+                return;
+            }
+            raidLobbyPanelView?.SetMaps(resp.maps);
+        }
+
+        private void ExitRaidState()
+        {
+            isInRaid = false;
+            raidHudOverlay?.Hide();
+            if (raidInventoryPanelView != null)
+            {
+                Destroy(raidInventoryPanelView.gameObject);
+                raidInventoryPanelView = null;
+            }
         }
     }
 }

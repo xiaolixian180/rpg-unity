@@ -989,4 +989,166 @@ namespace HeroQuest.Net.Go
     {
         public uint code;
     }
+
+    // --- Raid ---
+
+    [Serializable]
+    public sealed class GoRaidEnterRequest { public int map_id; }
+
+    [Serializable]
+    public sealed class GoRaidEnterResponse
+    {
+        public uint code;
+        public ulong map_id;
+        public string map_name;
+        public long duration;
+        public GoRaidMonsterData[] monsters;
+        public GoRaidZoneData[] zones;
+        public GoExtractionPointData[] extraction_points;
+        public GoLootContainerData[] loot_containers;
+    }
+
+    [Serializable]
+    public sealed class GoRaidMonsterData
+    {
+        public ulong id;
+        public string name;
+        public long hp;
+        public long max_hp;
+        public float x;
+        public float y;
+        public bool elite;
+    }
+
+    [Serializable]
+    public sealed class GoRaidZoneData
+    {
+        public int id;
+        public string name;
+        public float x1, y1, x2, y2;
+        public bool pvp_enabled;
+        public int loot_tier;
+    }
+
+    [Serializable]
+    public sealed class GoExtractionPointData
+    {
+        public int id;
+        public float x, y, radius;
+        public int extract_duration;
+    }
+
+    [Serializable]
+    public sealed class GoLootContainerData
+    {
+        public ulong id;
+        public float x, y;
+        public bool opened;
+    }
+
+    [Serializable]
+    public sealed class GoRaidLeaveResponse { public uint code; }
+
+    [Serializable]
+    public sealed class GoRaidInfo
+    {
+        public long remaining;
+        public int zone_id;
+        public bool pvp_flag;
+    }
+
+    [Serializable]
+    public sealed class GoRaidExtractRequest { public int point_id; }
+    [Serializable]
+    public sealed class GoRaidExtractResponse { public uint code; public int timer; }
+
+    [Serializable]
+    public sealed class GoRaidExtractProgress { public int timer; }
+
+    [Serializable]
+    public sealed class GoRaidLootOpenRequest { public ulong container_id; }
+
+    [Serializable]
+    public sealed class GoRaidLootOpenResponse
+    {
+        public uint code;
+        public GoRaidLootData[] items;
+    }
+
+    [Serializable]
+    public sealed class GoRaidLootData
+    {
+        public int index;
+        public int item_id;
+        public int count;
+        public int quality;
+        public string name;
+    }
+
+    [Serializable]
+    public sealed class GoRaidLootPickupRequest { public int item_index; }
+    [Serializable]
+    public sealed class GoRaidLootPickupResponse { public uint code; }
+
+    [Serializable]
+    public sealed class GoRaidLootDiscardRequest { public int item_index; }
+    [Serializable]
+    public sealed class GoRaidLootDiscardResponse { public uint code; }
+
+    [Serializable]
+    public sealed class GoRaidInventory { public GoRaidLootData[] items; }
+
+    [Serializable]
+    public sealed class GoRaidDeath
+    {
+        public ulong player_id;
+        public string reason;
+    }
+
+    [Serializable]
+    public sealed class GoRaidTimer { public long remaining; }
+
+    [Serializable]
+    public sealed class GoRaidPvpAttackRequest { public ulong target_id; }
+
+    [Serializable]
+    public sealed class GoRaidPvpResult
+    {
+        public uint code;
+        public ulong attacker_id;
+        public ulong target_id;
+        public long damage;
+        public long curr_hp;
+        public bool is_dead;
+    }
+
+    [Serializable]
+    public sealed class GoRaidMapListRequest { }
+
+    [Serializable]
+    public sealed class GoRaidMapListResponse
+    {
+        public uint code;
+        public GoRaidMapInfo[] maps;
+    }
+
+    [Serializable]
+    public sealed class GoRaidMapInfo
+    {
+        public int template_id;
+        public string name;
+        public long duration;
+        public int zone_count;
+        public int loot_tier;
+    }
+
+    [Serializable]
+    public sealed class GoRaidStashRequest { }
+
+    [Serializable]
+    public sealed class GoRaidStashResponse
+    {
+        public uint code;
+        public GoRaidLootData[] items;
+    }
 }

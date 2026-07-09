@@ -116,6 +116,32 @@ namespace HeroQuest.Net.Go
         public const ushort ChatHistory = 2304;
         public const ushort ChatHistoryResponse = 2305;
 
+        // --- Raid (2401-2499) ---
+        public const ushort MsgIDRaidEnter = 2401;
+        public const ushort MsgIDRaidEnterResp = 2402;
+        public const ushort MsgIDRaidLeave = 2403;
+        public const ushort MsgIDRaidLeaveResp = 2404;
+        public const ushort MsgIDRaidInfo = 2405;
+        public const ushort MsgIDRaidExtract = 2406;
+        public const ushort MsgIDRaidExtractResp = 2407;
+        public const ushort MsgIDRaidExtractProgress = 2408;
+        public const ushort MsgIDRaidLootOpen = 2409;
+        public const ushort MsgIDRaidLootOpenResp = 2410;
+        public const ushort MsgIDRaidLootPickup = 2411;
+        public const ushort MsgIDRaidLootPickupResp = 2412;
+        public const ushort MsgIDRaidLootDiscard = 2413;
+        public const ushort MsgIDRaidLootDiscardResp = 2414;
+        public const ushort MsgIDRaidInventory = 2415;
+        public const ushort MsgIDRaidDeath = 2416;
+        public const ushort MsgIDRaidTimer = 2417;
+        public const ushort MsgIDRaidMonsterRefresh = 2418;
+        public const ushort MsgIDRaidPvpAttack = 2419;
+        public const ushort MsgIDRaidPvpResult = 2420;
+        public const ushort MsgIDRaidMapList = 2421;
+        public const ushort MsgIDRaidMapListResp = 2422;
+        public const ushort MsgIDRaidStash = 2423;
+        public const ushort MsgIDRaidStashResp = 2424;
+
         public const ushort Broadcast = 9001;
         public const ushort Heartbeat = 9002;
         public const ushort Kick = 9003;
