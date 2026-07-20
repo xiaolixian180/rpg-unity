@@ -13,12 +13,15 @@ namespace HeroQuest.Net.Go
     /// </summary>
     public sealed class NetworkManager : IDisposable
     {
-        private static readonly Uri DefaultServerUri = new("ws://localhost:8088/ws");
+        private static readonly Uri DefaultServerUri = new("ws://129.226.195.114:8080/ws");
 
         private readonly GoWebSocketConnection connection;
         private readonly ConcurrentQueue<Action> mainThreadQueue = new();
         private CancellationTokenSource heartbeatCts;
         private bool disposed;
+        private bool wasConnected;          // 是否曾经连接成功过
+        private bool isReconnecting;         // 是否正在重连中
+        private float reconnectCooldown;     // 距离下次重连的冷却秒数
 
         public bool IsConnected => connection.IsConnected;
 
@@ -144,6 +147,7 @@ namespace HeroQuest.Net.Go
         public async Task ConnectAsync(CancellationToken ct)
         {
             await connection.ConnectAsync(DefaultServerUri, ct).ConfigureAwait(false);
+            wasConnected = true;
             heartbeatCts = new CancellationTokenSource();
             _ = HeartbeatLoopAsync(heartbeatCts.Token);
             Debug.Log($"[NetworkManager] 已连接到 {DefaultServerUri}");
@@ -167,9 +171,20 @@ namespace HeroQuest.Net.Go
 
         /// <summary>
         /// 在 Unity 主线程 Update 中调用，分发消息事件到 UI / Gameplay 回调。
+        /// 同时检测断线并自动重连。
         /// </summary>
         public void PumpMainThread()
         {
+            // 检测断线并自动重连
+            if (wasConnected && !isReconnecting && !connection.IsConnected && reconnectCooldown <= 0f)
+            {
+                _ = TryReconnectAsync();
+            }
+            if (reconnectCooldown > 0f)
+            {
+                reconnectCooldown -= UnityEngine.Time.deltaTime;
+            }
+
             while (mainThreadQueue.TryDequeue(out var action))
             {
                 try
@@ -180,6 +195,31 @@ namespace HeroQuest.Net.Go
                 {
                     Debug.LogError($"[NetworkManager] PumpMainThread error: {ex}");
                 }
+            }
+        }
+
+        private async Task TryReconnectAsync()
+        {
+            isReconnecting = true;
+            reconnectCooldown = 5f; // 5秒冷却
+            Debug.LogWarning("[NetworkManager] 检测到断线，尝试重连...");
+            try
+            {
+                await connection.ConnectAsync(DefaultServerUri, CancellationToken.None).ConfigureAwait(false);
+                heartbeatCts?.Cancel();
+                heartbeatCts?.Dispose();
+                heartbeatCts = new CancellationTokenSource();
+                _ = HeartbeatLoopAsync(heartbeatCts.Token);
+                Debug.Log($"[NetworkManager] 重连成功 {DefaultServerUri}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[NetworkManager] 重连失败: {ex.Message}，5秒后重试");
+                reconnectCooldown = 5f;
+            }
+            finally
+            {
+                isReconnecting = false;
             }
         }
 
@@ -283,8 +323,8 @@ namespace HeroQuest.Net.Go
             => connection.SendJsonAsync(GoMessageIds.ShopBuy, new GoShopBuyRequest { item_id = itemId, count = count, currency_type = currencyType }, ct);
 
         // --- Trading ---
-        public Task SendTradeListAsync(int category, int page, CancellationToken ct)
-            => connection.SendJsonAsync(GoMessageIds.TradeList, new GoTradeListRequest { category = category, page = page }, ct);
+        public Task SendTradeListAsync(int category, int page, int pageSize, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.TradeList, new GoTradeListRequest { category = category, page = page, page_size = pageSize }, ct);
 
         public Task SendTradePublishAsync(int slot, long price, CancellationToken ct)
             => connection.SendJsonAsync(GoMessageIds.TradePublish, new GoTradePublishRequest { slot = slot, price = price }, ct);
@@ -307,8 +347,8 @@ namespace HeroQuest.Net.Go
             => connection.SendJsonAsync(GoMessageIds.AttrAssign, new GoAttrAssignRequest { attr = attr, val = val }, ct);
 
         // --- Ranking ---
-        public Task SendRankingListAsync(int type, CancellationToken ct)
-            => connection.SendJsonAsync(GoMessageIds.RankingList, new GoRankingListRequest { type = type }, ct);
+        public Task SendRankingListAsync(int type, int limit, CancellationToken ct)
+            => connection.SendJsonAsync(GoMessageIds.RankingList, new GoRankingListRequest { type = type, limit = limit }, ct);
 
         // --- Chat ---
         public Task SendChatSendAsync(int channel, ulong targetId, string content, CancellationToken ct)
