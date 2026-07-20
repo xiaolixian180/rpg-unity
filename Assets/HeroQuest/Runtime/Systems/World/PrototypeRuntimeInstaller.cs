@@ -28,14 +28,14 @@ namespace HeroQuest.Systems.World
         private static void EnsureMultiplayerHud()
         {
             // 已存在则跳过
-            if (Object.FindObjectOfType<MultiplayerHudOverlay>() != null) return;
+            if (Object.FindFirstObjectByType<MultiplayerHudOverlay>() != null) return;
             var go = new GameObject("Multiplayer Hud Overlay");
             go.AddComponent<MultiplayerHudOverlay>();
         }
 
         private static Bounds EnsureMapCoverage()
         {
-            var map = Object.FindObjectOfType<ProceduralMapRenderer>();
+            var map = Object.FindFirstObjectByType<ProceduralMapRenderer>();
             if (map == null)
             {
                 var mapObject = new GameObject("Prototype Map");
@@ -63,7 +63,7 @@ namespace HeroQuest.Systems.World
 
         private static void EnsureMonsterSpawner(Transform player)
         {
-            var existing = Object.FindObjectOfType<WildMonsterSpawner>();
+            var existing = Object.FindFirstObjectByType<WildMonsterSpawner>();
             if (existing != null)
             {
                 existing.SetPlayer(player);

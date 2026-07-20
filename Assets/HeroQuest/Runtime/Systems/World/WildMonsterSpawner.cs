@@ -12,9 +12,9 @@ namespace HeroQuest.Systems.World
         [SerializeField] private float respawnInterval = 2.5f;
         [SerializeField] private string[] monsterResourcePaths =
         {
-            "HeroQuest/Enemies/WildMonster_01",
-            "HeroQuest/Enemies/WildMonster_02",
-            "HeroQuest/Enemies/WildMonster_03"
+            "HeroQuest/Anime/Enemies/WildMonster_01",
+            "HeroQuest/Anime/Enemies/WildMonster_02",
+            "HeroQuest/Anime/Enemies/WildMonster_03"
         };
         [SerializeField] private string[] monsterDisplayNames =
         {

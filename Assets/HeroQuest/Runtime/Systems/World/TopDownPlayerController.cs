@@ -65,22 +65,22 @@ namespace HeroQuest.Systems.World
                 clickMoveTarget = null;
             }
 
-            // 鼠标左键点击移动（未点击怪物时走地面）
-            if (Input.GetMouseButtonDown(0) && clickMoveTarget.HasValue)
-            {
-                // clickMoveTarget 已由 PrototypeGameplayFlow 设置
-            }
+            // 鼠标左键点击移动由 PrototypeGameplayFlow 通过 SetClickMoveTarget 设置
 
             // 右键按住时朝鼠标方向转身
             if (Input.GetMouseButton(1))
             {
-                var mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                var dir = mouseWorld - transform.position;
-                if (visualRoot != null && Mathf.Abs(dir.x) > 0.01f)
+                var cam = Camera.main;
+                if (cam != null)
                 {
-                    var scale = visualRoot.localScale;
-                    scale.x = Mathf.Abs(scale.x) * Mathf.Sign(dir.x);
-                    visualRoot.localScale = scale;
+                    var mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
+                    var dir = mouseWorld - transform.position;
+                    if (visualRoot != null && Mathf.Abs(dir.x) > 0.01f)
+                    {
+                        var scale = visualRoot.localScale;
+                        scale.x = Mathf.Abs(scale.x) * Mathf.Sign(dir.x);
+                        visualRoot.localScale = scale;
+                    }
                 }
             }
 

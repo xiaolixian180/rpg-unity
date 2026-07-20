@@ -25,7 +25,7 @@ namespace HeroQuest.Systems.World
         {
             if (playerController == null)
             {
-                playerController = FindObjectOfType<TopDownPlayerController>();
+                playerController = FindFirstObjectByType<TopDownPlayerController>();
             }
 
             if (ServiceRegistry.TryResolve<NetworkManager>(out var nm))

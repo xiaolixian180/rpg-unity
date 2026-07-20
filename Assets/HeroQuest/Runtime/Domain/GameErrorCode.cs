@@ -41,6 +41,13 @@ namespace HeroQuest.Domain
         HonorNotEnough = 901,
         AttributePointNotEnough = 902,
         SkillPointNotEnough = 903,
-        SkillMaxLevel = 904
+        SkillMaxLevel = 904,
+
+        // ==================== 客户端网络错误 9100+ ====================
+        // 仅客户端使用，不与服务端错误码冲突（服务端最高 1310）
+        NetworkTimeout = 9100,
+        NetworkDisconnected = 9101,
+        NetworkSendFailed = 9102,
+        NetworkParseFailed = 9103
     }
 }

@@ -5,29 +5,29 @@ namespace HeroQuest.Systems.World
     [ExecuteAlways]
     public sealed class ProceduralMapRenderer : MonoBehaviour
     {
-        private const string BackgroundPath = "HeroQuest/World/Grassland_Background";
+        private const string BackgroundPath = "HeroQuest/Anime/World/Grassland_Background";
 
         private static readonly string[] TreePaths =
         {
-            "HeroQuest/World/Props/Tree_01",
-            "HeroQuest/World/Props/Tree_02",
-            "HeroQuest/World/Props/Tree_03"
+            "HeroQuest/Anime/World/Props/Tree_01",
+            "HeroQuest/Anime/World/Props/Tree_02",
+            "HeroQuest/Anime/World/Props/Tree_03"
         };
 
         private static readonly string[] RockPaths =
         {
-            "HeroQuest/World/Props/Rock_01",
-            "HeroQuest/World/Props/Rock_02"
+            "HeroQuest/Anime/World/Props/Rock_01",
+            "HeroQuest/Anime/World/Props/Rock_02"
         };
 
         private static readonly string[] BushPaths =
         {
-            "HeroQuest/World/Props/Bush_01",
-            "HeroQuest/World/Props/Bush_02",
-            "HeroQuest/World/Props/Bush_03",
-            "HeroQuest/World/Props/Bush_04",
-            "HeroQuest/World/Props/Bush_05",
-            "HeroQuest/World/Props/Bush_06"
+            "HeroQuest/Anime/World/Props/Bush_01",
+            "HeroQuest/Anime/World/Props/Bush_02",
+            "HeroQuest/Anime/World/Props/Bush_03",
+            "HeroQuest/Anime/World/Props/Bush_04",
+            "HeroQuest/Anime/World/Props/Bush_05",
+            "HeroQuest/Anime/World/Props/Bush_06"
         };
 
         [SerializeField] private int width = 128;
