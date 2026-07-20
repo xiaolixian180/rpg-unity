@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace HeroQuest.Core
 {
@@ -13,12 +14,30 @@ namespace HeroQuest.Core
     public sealed class EventBus : IEventBus
     {
         private readonly Dictionary<Type, Delegate> handlers = new();
+        private readonly object lockObj = new();
 
         public void Publish<TEvent>(TEvent gameEvent)
         {
-            if (handlers.TryGetValue(typeof(TEvent), out var handler))
+            Delegate handler;
+            lock (lockObj)
             {
-                ((Action<TEvent>)handler)?.Invoke(gameEvent);
+                if (!handlers.TryGetValue(typeof(TEvent), out handler))
+                    return;
+            }
+
+            var invocationList = ((Action<TEvent>)handler)?.GetInvocationList();
+            if (invocationList == null) return;
+
+            foreach (var del in invocationList)
+            {
+                try
+                {
+                    ((Action<TEvent>)del).Invoke(gameEvent);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[EventBus] Handler for {typeof(TEvent).Name} threw: {ex}");
+                }
             }
         }
 
@@ -30,9 +49,12 @@ namespace HeroQuest.Core
             }
 
             var eventType = typeof(TEvent);
-            handlers[eventType] = handlers.TryGetValue(eventType, out var existing)
-                ? Delegate.Combine(existing, handler)
-                : handler;
+            lock (lockObj)
+            {
+                handlers[eventType] = handlers.TryGetValue(eventType, out var existing)
+                    ? Delegate.Combine(existing, handler)
+                    : handler;
+            }
         }
 
         public void Unsubscribe<TEvent>(Action<TEvent> handler)
@@ -43,19 +65,21 @@ namespace HeroQuest.Core
             }
 
             var eventType = typeof(TEvent);
-            if (!handlers.TryGetValue(eventType, out var existing))
+            lock (lockObj)
             {
-                return;
-            }
+                if (!handlers.TryGetValue(eventType, out var existing))
+                {
+                    return;
+                }
 
-            var next = Delegate.Remove(existing, handler);
-            if (next == null)
-            {
-                handlers.Remove(eventType);
-                return;
+                var next = Delegate.Remove(existing, handler);
+                if (next == null)
+                {
+                    handlers.Remove(eventType);
+                    return;
+                }
+                handlers[eventType] = next;
             }
-
-            handlers[eventType] = next;
         }
     }
 }

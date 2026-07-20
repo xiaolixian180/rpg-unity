@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HeroQuest.Domain;
 using HeroQuest.Net.Go;
 using UnityEngine;
 
@@ -70,7 +71,7 @@ namespace HeroQuest.Net.Auth
                     };
                     network.CreatePlayerResult += onCreateResult;
 
-                    await network.SendCreatePlayerAsync(token, TestAccount, 1, cancellationToken);
+                    await network.SendCreatePlayerAsync(token, TestAccount, (int)CharacterClass.Warrior, cancellationToken);
 
                     var createCompleted = await Task.WhenAny(createTcs.Task, Task.Delay(-1, timeoutCts.Token));
                     if (createCompleted != createTcs.Task)

@@ -1,11 +1,12 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using UnityEngine;
 
 namespace HeroQuest.Core
 {
     public static class ServiceRegistry
     {
-        private static readonly Dictionary<Type, object> Services = new();
+        private static readonly ConcurrentDictionary<Type, object> Services = new();
 
         public static void Register<TService>(TService service) where TService : class
         {
@@ -14,7 +15,12 @@ namespace HeroQuest.Core
                 throw new ArgumentNullException(nameof(service));
             }
 
-            Services[typeof(TService)] = service;
+            var key = typeof(TService);
+            if (Services.TryGetValue(key, out var existing))
+            {
+                Debug.LogWarning($"[ServiceRegistry] Overwriting existing registration for {key.Name} (old={existing?.GetType().Name}).");
+            }
+            Services[key] = service;
         }
 
         public static bool TryResolve<TService>(out TService service) where TService : class
@@ -37,6 +43,11 @@ namespace HeroQuest.Core
             }
 
             throw new InvalidOperationException($"Service is not registered: {typeof(TService).Name}");
+        }
+
+        public static bool Unregister<TService>() where TService : class
+        {
+            return Services.TryRemove(typeof(TService), out _);
         }
 
         public static void Clear()

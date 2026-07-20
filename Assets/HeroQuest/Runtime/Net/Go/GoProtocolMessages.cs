@@ -1,8 +1,17 @@
 using System;
-using System.Collections.Generic;
 
 namespace HeroQuest.Net.Go
 {
+    /// <summary>
+    /// JsonUtility 不支持 Dictionary，用可序列化数组替代。
+    /// </summary>
+    [Serializable]
+    public sealed class GoItemCount
+    {
+        public uint item_id;
+        public int count;
+    }
+
     [Serializable]
     public sealed class GoLoginRequest
     {
@@ -53,7 +62,7 @@ namespace HeroQuest.Net.Go
         public long max_hp;
         public long mp;
         public long max_mp;
-        public Dictionary<uint, int> items;
+        public GoItemCount[] items;
         public GoEquipmentData[] equipment;
     }
 
@@ -236,7 +245,7 @@ namespace HeroQuest.Net.Go
     [Serializable]
     public sealed class GoInventorySync
     {
-        public Dictionary<uint, int> items;
+        public GoItemCount[] items;
     }
 
     // --- Pet Equipment ---
@@ -601,6 +610,7 @@ namespace HeroQuest.Net.Go
     {
         public int category;
         public int page;
+        public int page_size;
     }
 
     [Serializable]
@@ -758,6 +768,7 @@ namespace HeroQuest.Net.Go
     public sealed class GoRankingListRequest
     {
         public int type;
+        public int limit;
     }
 
     [Serializable]
