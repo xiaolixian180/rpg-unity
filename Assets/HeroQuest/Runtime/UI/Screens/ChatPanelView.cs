@@ -34,7 +34,9 @@ namespace HeroQuest.UI.Screens
         // --- Events ---
         public event Action OnCloseRequested;
         public event Action<int, ulong, string> OnSendRequested;
+#pragma warning disable CS0067 // 事件已声明供外部订阅；历史拉取入口尚未接入 UI，待后续迭代触发
         public event Action<int, int> OnHistoryRequested;
+#pragma warning restore CS0067
         public event Action<ulong, string> OnPrivateChatRequested;
 
         // --- State ---
