@@ -256,19 +256,25 @@ namespace HeroQuest.Systems.World
                 return;
             }
 
-            // 鼠标左键：选中目标 / 点击地面移动
-            if (Input.GetMouseButtonDown(0))
+            // 鼠标左键：选中目标 + 自动攻击 / 点击地面移动
+            if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
             {
                 HandleMouseClick();
                 return;
             }
 
             // 鼠标右键：自动攻击 / 交互
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1) && !IsPointerOverUI())
             {
                 HandleRightClick();
                 return;
             }
+        }
+
+        private static bool IsPointerOverUI()
+        {
+            return UnityEngine.EventSystems.EventSystem.current != null
+                && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
         }
 
         private void BuildCanvas()
@@ -834,7 +840,10 @@ namespace HeroQuest.Systems.World
             {
                 var dmgText = damage.damage.ToString();
                 var dmgColor = new Color(1f, 0.35f, 0.2f, 1f);
-                hud?.ShowFloatingText(new Vector3((float)dmgMonster.x, (float)dmgMonster.y, 0f), dmgText, dmgColor);
+                var monsterPos = new Vector3((float)dmgMonster.x, (float)dmgMonster.y, 0f);
+                hud?.ShowFloatingText(monsterPos, dmgText, dmgColor);
+                // 攻击命中特效
+                SpawnHitEffect(monsterPos);
             }
 
             if (damage.pet_damage > 0)
@@ -1050,11 +1059,13 @@ namespace HeroQuest.Systems.World
                 var dead = t.is_dead ? " 击杀！" : "";
                 hud?.AddLog($"[技能] 技能{effect.skill_id} 命中目标{t.target_id}，伤害{t.damage}{dead}");
 
-                // 浮动伤害数字
+                // 浮动伤害数字 + 特效
                 if (visibleMonsters.TryGetValue(t.target_id, out var skillMonster))
                 {
+                    var monsterPos = new Vector3((float)skillMonster.x, (float)skillMonster.y, 0f);
                     var dmgColor = new Color(1f, 0.35f, 0.2f, 1f);
-                    hud?.ShowFloatingText(new Vector3((float)skillMonster.x, (float)skillMonster.y, 0f), t.damage.ToString(), dmgColor);
+                    hud?.ShowFloatingText(monsterPos, t.damage.ToString(), dmgColor);
+                    SpawnHitEffect(monsterPos);
                 }
 
                 if (t.is_dead)
@@ -1240,7 +1251,7 @@ namespace HeroQuest.Systems.World
         {
             var mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseWorld.z = 0f;
-            var clickedId = FindMonsterAtPosition(mouseWorld, 0.8f);
+            var clickedId = FindMonsterAtPosition(mouseWorld, 1.5f);
             if (clickedId != 0)
             {
                 selectedTargetId = clickedId;
@@ -1289,6 +1300,45 @@ namespace HeroQuest.Systems.World
             _ = network.SendAttackAsync(selectedTargetId, skillId, CancellationToken.None);
             var skillText = skillId == 0 ? "普通攻击" : $"技能{skillId}";
             hud?.AddLog($"[战斗] 对目标{selectedTargetId}使用{skillText}。");
+
+            // 攻击起手特效：玩家位置发出闪光
+            if (playerController != null)
+            {
+                SpawnAttackFlash(playerController.transform.position, skillId);
+            }
+        }
+
+        /// <summary>
+        /// 在目标位置生成命中特效（短暂闪光圆 + 扩散动画）。
+        /// </summary>
+        private void SpawnHitEffect(Vector3 worldPos)
+        {
+            var go = new GameObject("HitEffect");
+            go.transform.position = worldPos;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = PrototypeSpriteFactory.CreateEllipseSprite(48, 48, new Color(1f, 0.85f, 0.2f, 0.9f), 64);
+            sr.sortingOrder = 20;
+            var anim = go.AddComponent<HitEffectAnimator>();
+            anim.StartAnim();
+            Destroy(go, 0.4f);
+        }
+
+        /// <summary>
+        /// 在玩家位置生成攻击起手闪光。
+        /// </summary>
+        private void SpawnAttackFlash(Vector3 playerPos, int skillId)
+        {
+            var color = skillId == 0
+                ? new Color(0.8f, 0.8f, 0.8f, 0.7f)
+                : new Color(0.3f, 0.5f, 1f, 0.8f);
+            var go = new GameObject("AttackFlash");
+            go.transform.position = playerPos + new Vector3(0f, 0.5f, 0f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = PrototypeSpriteFactory.CreateEllipseSprite(40, 40, color, 64);
+            sr.sortingOrder = 15;
+            var anim = go.AddComponent<HitEffectAnimator>();
+            anim.StartAnim();
+            Destroy(go, 0.3f);
         }
 
         // 消耗品槽位映射（槽位 -> item_id）
@@ -1427,12 +1477,14 @@ namespace HeroQuest.Systems.World
             var mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseWorld.z = 0f;
 
-            var clickedId = FindMonsterAtPosition(mouseWorld, 0.8f);
+            var clickedId = FindMonsterAtPosition(mouseWorld, 1.5f);
             if (clickedId != 0)
             {
                 selectedTargetId = clickedId;
                 var m = visibleMonsters[clickedId];
                 hud?.SetTarget(m.name, 0, (float)m.hp / m.max_hp, m.hp, m.max_hp);
+                // 左键点击怪物 = 选中 + 自动攻击
+                DoAttack(0);
             }
             else if (playerController != null)
             {
