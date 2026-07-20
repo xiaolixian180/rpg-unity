@@ -21,6 +21,8 @@ namespace HeroQuest.UI.Screens
 
         // --- Events ---
         public event Action OnRaidInventoryRequested;
+        public event Action OnRaidLeaveRequested;
+        public event Action OnRaidExtractRequested;
 
         // --- UI refs ---
         private Text _timerText;
@@ -158,6 +160,14 @@ namespace HeroQuest.UI.Screens
             // --- Inventory button (right side) ---
             _inventoryBtn = CreateButton(root, "背包(R)", new Vector2(0.92f, 0.85f), new Vector2(100f, 36f));
             _inventoryBtn.onClick.AddListener(() => OnRaidInventoryRequested?.Invoke());
+
+            // --- Extract button ---
+            var extractBtn = CreateButton(root, "撤离(V)", new Vector2(0.92f, 0.78f), new Vector2(100f, 36f));
+            extractBtn.onClick.AddListener(() => OnRaidExtractRequested?.Invoke());
+
+            // --- Leave button ---
+            var leaveBtn = CreateButton(root, "离开(L)", new Vector2(0.92f, 0.71f), new Vector2(100f, 36f));
+            leaveBtn.onClick.AddListener(() => OnRaidLeaveRequested?.Invoke());
         }
 
         // -------------------------------------------------------------------

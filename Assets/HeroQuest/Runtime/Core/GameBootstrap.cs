@@ -23,7 +23,7 @@ namespace HeroQuest.Core
 
         public static GameBootstrap Ensure()
         {
-            var existing = UnityEngine.Object.FindObjectOfType<GameBootstrap>();
+            var existing = UnityEngine.Object.FindFirstObjectByType<GameBootstrap>();
             if (existing != null)
             {
                 existing.InitializeRegistry();
@@ -61,16 +61,19 @@ namespace HeroQuest.Core
             var networkManager = new NetworkManager();
             ServiceRegistry.Register(networkManager);
 
-            ServiceRegistry.Register<IInventoryService>(new InventoryServiceStub());
-            ServiceRegistry.Register<IEquipmentService>(new EquipmentServiceStub());
-            ServiceRegistry.Register<ISkillService>(new SkillServiceStub());
-            ServiceRegistry.Register<IPetService>(new PetServiceStub());
-            ServiceRegistry.Register<IPvpService>(new PvpServiceStub());
-            ServiceRegistry.Register<IShopService>(new ShopServiceStub());
-            ServiceRegistry.Register<ITradingService>(new TradingServiceStub());
-            ServiceRegistry.Register<IRankingService>(new RankingServiceStub());
-            ServiceRegistry.Register<ISaveService>(new SaveServiceStub());
-            ServiceRegistry.Register<IDungeonResourceService>(new DungeonResourceServiceStub());
+            // --- Batch3: Inventory/Pet/DungeonResource 已替换为真实网络实现 ---
+            ServiceRegistry.Register<IInventoryService>(new InventoryService(networkManager));
+            // --- Batch2: Equipment/Skill/PvP 已替换为真实网络实现 ---
+            ServiceRegistry.Register<IEquipmentService>(new EquipmentService(networkManager));
+            ServiceRegistry.Register<ISkillService>(new SkillService(networkManager));
+            ServiceRegistry.Register<IPetService>(new PetService(networkManager));
+            ServiceRegistry.Register<IPvpService>(new PvpService(networkManager));
+            // --- Batch1: Ranking/Shop/Trading 已替换为真实网络实现 ---
+            ServiceRegistry.Register<IShopService>(new ShopService(networkManager));
+            ServiceRegistry.Register<ITradingService>(new TradingService(networkManager));
+            ServiceRegistry.Register<IRankingService>(new RankingService(networkManager));
+            ServiceRegistry.Register<ISaveService>(new SaveServiceStub()); // --- Batch4: 按决策保持 Stub，存档由服务端自动管理 ---
+            ServiceRegistry.Register<IDungeonResourceService>(new DungeonResourceService(networkManager));
         }
 
         private void Awake()

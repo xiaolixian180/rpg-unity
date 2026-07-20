@@ -94,7 +94,7 @@ namespace HeroQuest.UI.Screens
         /// </summary>
         public void ApplyTeamInfo(GoTeamInfo team)
         {
-            if (team == null)
+            if (team == null || team.members == null || team.members.Length == 0)
             {
                 ApplyNoTeam();
                 return;
@@ -107,14 +107,18 @@ namespace HeroQuest.UI.Screens
             currentLeaderId = team.leader_id;
 
             // Determine whether the local player is the leader.
-            // currentPlayerId is set externally; fall back to checking is_leader on members.
+            // currentPlayerId is set externally; fall back to is_leader flag on members.
             bool isLeader = false;
             for (int i = 0; i < team.members.Length; i++)
             {
-                if (team.members[i].player_id == currentPlayerId && team.members[i].is_leader)
+                if (team.members[i].player_id == currentPlayerId)
                 {
-                    isLeader = true;
+                    isLeader = team.members[i].is_leader;
                     break;
+                }
+                if (team.members[i].is_leader && currentPlayerId == 0)
+                {
+                    isLeader = team.members[i].player_id == team.leader_id;
                 }
             }
 

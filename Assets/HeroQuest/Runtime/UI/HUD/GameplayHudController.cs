@@ -38,7 +38,7 @@ namespace HeroQuest.UI.HUD
 
         public static GameplayHudController Ensure()
         {
-            var existing = FindObjectOfType<GameplayHudController>();
+            var existing = FindFirstObjectByType<GameplayHudController>();
             if (existing != null)
             {
                 existing.gameObject.SetActive(true);
@@ -172,7 +172,9 @@ namespace HeroQuest.UI.HUD
             go.transform.SetParent(transform, false);
             var rect = go.GetComponent<RectTransform>();
             var screenPos = Camera.main.WorldToScreenPoint(worldPos);
-            rect.anchoredPosition = screenPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                (RectTransform)transform, screenPos, null, out var localPos);
+            rect.anchoredPosition = localPos;
             var label = CreateLabel("Dmg", go.transform, text, 28, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(200f, 40f));
             label.color = color;
             var anim = go.AddComponent<FloatingTextAnimator>();
@@ -196,6 +198,7 @@ namespace HeroQuest.UI.HUD
             BuildTargetFrame(root);
             BuildActionBar(root);
             BuildChatLog(root);
+            BuildConsumableBar(root);
 
             SetVitals(1f, 0.82f);
             SetTarget("", 0, 0, 0, 0);
@@ -211,11 +214,11 @@ namespace HeroQuest.UI.HUD
             CreateLabel("Top Title", bar.transform, "勇者远征", 18, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(260f, 28f));
             clockText = CreateLabel("Clock", bar.transform, "00:00", 18, TextAnchor.MiddleCenter, new Vector2(0.62f, 0.5f), new Vector2(120f, 28f));
 
-            var commands = new[] { "背包", "任务", "队伍", "设置" };
+            var commands = new[] { "战局", "背包", "任务", "队伍", "设置" };
             for (var i = 0; i < commands.Length; i++)
             {
                 var command = commands[i];
-                var button = CreateButton($"Top {command}", bar.transform, command, new Vector2(0.78f + i * 0.055f, 0.5f), new Vector2(92f, 26f));
+                var button = CreateButton($"Top {command}", bar.transform, command, new Vector2(0.62f + i * 0.055f, 0.5f), new Vector2(92f, 26f));
                 button.onClick.AddListener(() =>
                 {
                     CommandClicked?.Invoke(command);
@@ -261,6 +264,7 @@ namespace HeroQuest.UI.HUD
                 var index = i;
                 var slot = CreatePanel($"Slot {keys[i]}", actionBar.transform, new Color(0.08f, 0.12f, 0.10f, 1f), Border);
                 SetAnchor(slot.rectTransform, new Vector2(0.03f + i * 0.08f, 0.5f), new Vector2(48f, 48f), Vector2.zero, new Vector2(0.5f, 0.5f));
+                slot.gameObject.AddComponent<Button>();
 
                 // 按键绑定标签（左上角）
                 var keybind = CreateLabel($"Key {keys[i]}", slot.transform, keys[i], 11, TextAnchor.UpperLeft, new Vector2(0.12f, 0.88f), new Vector2(20f, 14f));
@@ -334,6 +338,26 @@ namespace HeroQuest.UI.HUD
                 var line = CreateLabel($"Log Line {i}", chat.transform, string.Empty, 16, TextAnchor.MiddleLeft, new Vector2(0.5f, 0.88f - i * 0.105f), new Vector2(350f, 22f));
                 line.color = new Color(0.28f, 0.95f, 0.25f, 1f);
                 logLines.Add(line);
+            }
+        }
+
+        private void BuildConsumableBar(Transform root)
+        {
+            var panel = CreatePanel("Consumable Bar", root, PanelDark, Border);
+            SetAnchor(panel.rectTransform, new Vector2(1f, 0.42f), new Vector2(176f, 220f), new Vector2(-8f, 0f), new Vector2(1f, 0.5f));
+
+            CreateLabel("Consumable Title", panel.transform, "消耗品", 14, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.92f), new Vector2(160f, 20f));
+
+            for (var i = 0; i < 6; i++)
+            {
+                var slot = CreatePanel($"Item Slot {i}", panel.transform, new Color(0.06f, 0.10f, 0.08f, 1f), Border);
+                SetAnchor(slot.rectTransform, new Vector2(0.5f, 0.80f - i * 0.13f), new Vector2(160f, 22f), Vector2.zero, new Vector2(0.5f, 0.5f));
+
+                var nameLabel = CreateLabel($"Item Name {i}", slot.transform, "", 12, TextAnchor.MiddleLeft, new Vector2(0.5f, 0.5f), new Vector2(120f, 18f));
+                consumableNames.Add(nameLabel);
+
+                var countLabel = CreateLabel($"Item Count {i}", slot.transform, "", 12, TextAnchor.MiddleRight, new Vector2(0.5f, 0.5f), new Vector2(36f, 18f));
+                consumableCounts.Add(countLabel);
             }
         }
 
@@ -433,11 +457,13 @@ namespace HeroQuest.UI.HUD
     {
         internal Text label;
         private float elapsed;
-        private Vector3 startPos;
+        private Vector2 startPos;
+        private RectTransform rect;
 
         private void Start()
         {
-            startPos = transform.position;
+            rect = GetComponent<RectTransform>();
+            startPos = rect.anchoredPosition;
         }
 
         private void Update()
@@ -445,7 +471,7 @@ namespace HeroQuest.UI.HUD
             elapsed += Time.deltaTime;
             var t = elapsed / 1.2f;
             // 向上漂浮
-            transform.position = startPos + Vector3.up * (t * 80f);
+            rect.anchoredPosition = startPos + Vector2.up * (t * 80f);
             // 淡出
             if (label != null)
             {

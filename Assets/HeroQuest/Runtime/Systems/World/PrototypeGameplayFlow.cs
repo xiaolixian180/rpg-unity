@@ -47,6 +47,10 @@ namespace HeroQuest.Systems.World
         private RaidInventoryPanelView raidInventoryPanelView;
         private bool isInRaid; // 是否在战局中
         private ulong pendingWearEquipId; // 穿戴请求时暂存 equipId，响应后用于更新本地状态
+        private GoLootContainerData[] _raidContainers; // 当前战局的容器列表
+        private GoExtractionPointData[] _raidExtractionPoints; // 当前战局的撤离点
+        private GoRaidZoneData[] _raidZones; // 当前战局的区域数据
+        private ulong _raidNearestContainerId; // 最近的可交互容器ID
 
         // 动作条绑定（12个槽位：0=技能/普攻，1=消耗品）
         private enum BarSlotType { Empty, Skill, Item }
@@ -56,7 +60,7 @@ namespace HeroQuest.Systems.World
 
         public static PrototypeGameplayFlow Ensure(TopDownPlayerController controller)
         {
-            var existing = FindObjectOfType<PrototypeGameplayFlow>();
+            var existing = FindFirstObjectByType<PrototypeGameplayFlow>();
             if (existing != null)
             {
                 existing.Bind(controller);
@@ -79,7 +83,7 @@ namespace HeroQuest.Systems.World
         {
             if (playerController == null)
             {
-                playerController = FindObjectOfType<TopDownPlayerController>();
+                playerController = FindFirstObjectByType<TopDownPlayerController>();
                 animator = playerController != null ? playerController.GetComponentInChildren<GridSpriteSheetAnimator>(true) : null;
             }
 
@@ -199,6 +203,35 @@ namespace HeroQuest.Systems.World
             if (Input.GetKeyDown(KeyCode.R) && isInRaid)
             {
                 ToggleRaidInventoryPanelView();
+                return;
+            }
+
+            // V = 撤离 / 离开（战局内）
+            if (Input.GetKeyDown(KeyCode.V) && isInRaid)
+            {
+                TryRaidExtract();
+                return;
+            }
+
+            // L = 离开战局
+            if (Input.GetKeyDown(KeyCode.L) && isInRaid)
+            {
+                _ = network.SendRaidLeaveAsync(CancellationToken.None);
+                hud?.AddLog("[战局] 正在离开战局...");
+                return;
+            }
+
+            // F = 搜索容器（战局内）
+            if (Input.GetKeyDown(KeyCode.F) && isInRaid)
+            {
+                TryOpenNearestContainer();
+                return;
+            }
+
+            // G = 拾取容器物品（战局内）
+            if (Input.GetKeyDown(KeyCode.G) && isInRaid)
+            {
+                TryPickupContainerLoot();
                 return;
             }
 
@@ -563,6 +596,8 @@ namespace HeroQuest.Systems.World
             network.RaidInventorySync += OnRaidInventorySync;
             network.RaidPvpResult += OnRaidPvpResult;
             network.RaidMapListResult += OnRaidMapListResult;
+            network.RaidStashResult += OnRaidStashResult;
+            network.RaidInfoReceived += OnRaidInfo;
         }
 
         private void OnDestroy()
@@ -641,6 +676,8 @@ namespace HeroQuest.Systems.World
                 network.RaidInventorySync -= OnRaidInventorySync;
                 network.RaidPvpResult -= OnRaidPvpResult;
                 network.RaidMapListResult -= OnRaidMapListResult;
+                network.RaidStashResult -= OnRaidStashResult;
+                network.RaidInfoReceived -= OnRaidInfo;
             }
         }
 
@@ -656,7 +693,7 @@ namespace HeroQuest.Systems.World
             hud?.AddLog($"[地下城] 已进入第{resp.layer}层，区域: {resp.zone}");
 
             // 关闭野怪装饰刷新
-            var wildSpawner = FindObjectOfType<WildMonsterSpawner>();
+            var wildSpawner = FindFirstObjectByType<WildMonsterSpawner>();
             if (wildSpawner != null)
             {
                 wildSpawner.enabled = false;
@@ -762,7 +799,7 @@ namespace HeroQuest.Systems.World
             if (damage.target_id == playerId)
             {
                 var dmgLabel = damage.is_dead ? "受到致命伤害" : "受到伤害";
-                hud?.AddLog($"[战斗] {damage.target_id}对你造成 {damage.damage} 伤害，剩余HP {damage.curr_hp}");
+                hud?.AddLog($"[战斗] {dmgLabel} {damage.damage}，剩余HP {damage.curr_hp}");
 
                 // 浮动伤害文字（显示在玩家位置）
                 if (playerController != null)
@@ -932,6 +969,19 @@ namespace HeroQuest.Systems.World
         {
             playerDead = false;
             SetGameplayEnabled(true);
+
+            // 复活时传送到安全位置（地图左下角附近）
+            if (playerController != null)
+            {
+                var mapRenderer = FindFirstObjectByType<ProceduralMapRenderer>();
+                if (mapRenderer != null)
+                {
+                    var bounds = mapRenderer.GetWorldBounds();
+                    var safePos = bounds.min + new Vector3(5f, 5f, 0f);
+                    playerController.transform.position = safePos;
+                }
+            }
+
             // 恢复HP显示
             if (localPlayerData != null)
             {
@@ -1018,6 +1068,7 @@ namespace HeroQuest.Systems.World
                     if (t.target_id == selectedTargetId)
                     {
                         selectedTargetId = 0;
+                        SelectNearestTarget();
                     }
                 }
                 else
@@ -1057,6 +1108,9 @@ namespace HeroQuest.Systems.World
                         _ = network.SendPetSummonAsync(0, CancellationToken.None);
                     hud?.AddLog("[宠物] 正在查询宠物...");
                     break;
+                case "战局":
+                    ToggleRaidLobbyPanelView();
+                    break;
                 case "背包":
                 case "角色":
                     ToggleCharacterPanel();
@@ -1073,12 +1127,12 @@ namespace HeroQuest.Systems.World
                     break;
                 case "交易":
                     if (network != null && network.IsConnected)
-                        _ = network.SendTradeListAsync(0, 1, CancellationToken.None);
+                        _ = network.SendTradeListAsync(0, 1, 20, CancellationToken.None);
                     hud?.AddLog("[交易] 正在加载交易行...");
                     break;
                 case "排行":
                     if (network != null && network.IsConnected)
-                        _ = network.SendRankingListAsync(0, CancellationToken.None);
+                        _ = network.SendRankingListAsync(0, 50, CancellationToken.None);
                     hud?.AddLog("[排行] 正在加载排行榜...");
                     break;
                 case "移动":
@@ -1248,7 +1302,7 @@ namespace HeroQuest.Systems.World
             { 5, "全能药水" },
         };
 
-        private void UseItemFromSlot(int slot)
+        private void UseItemFromSlot(int itemId)
         {
             if (network == null || !network.IsConnected)
             {
@@ -1256,15 +1310,15 @@ namespace HeroQuest.Systems.World
                 return;
             }
 
-            if (slot < 1 || slot >= ItemSlotMap.Length || ItemSlotMap[slot] == 0)
+            if (itemId <= 0)
             {
-                hud?.AddLog($"[物品] 槽位 {slot} 未绑定物品。");
+                hud?.AddLog("[物品] 无效的物品ID。");
                 return;
             }
 
-            var itemId = ItemSlotMap[slot];
-            _ = network.SendUseItemAsync(itemId, CancellationToken.None);
-            hud?.AddLog($"[物品] 使用物品 ID={itemId}...");
+            _ = network.SendUseItemAsync((uint)itemId, CancellationToken.None);
+            var itemName = ItemNames.TryGetValue((uint)itemId, out var n) ? n : $"物品{itemId}";
+            hud?.AddLog($"[物品] 使用 {itemName}...");
         }
 
         private void OnUseItemResult(GoUseItemResponse resp)
@@ -1306,7 +1360,7 @@ namespace HeroQuest.Systems.World
             RefreshConsumableBar(sync.items);
         }
 
-        private void RefreshConsumableBar(Dictionary<uint, int> items)
+        private void RefreshConsumableBar(GoItemCount[] items)
         {
             // 槽位1-6对应 ItemSlotMap[1..6]
             for (var i = 0; i < 6; i++)
@@ -1316,7 +1370,15 @@ namespace HeroQuest.Systems.World
                 {
                     var itemId = ItemSlotMap[slotIndex];
                     var name = ItemNames.TryGetValue(itemId, out var n) ? n : "";
-                    var count = items.TryGetValue(itemId, out var c) ? c : 0;
+                    var count = 0;
+                    for (var j = 0; j < items.Length; j++)
+                    {
+                        if (items[j].item_id == itemId)
+                        {
+                            count = items[j].count;
+                            break;
+                        }
+                    }
                     hud?.UpdateInventorySlot(i, name, count);
                 }
                 else
@@ -1731,7 +1793,7 @@ namespace HeroQuest.Systems.World
         {
             if (forgePanelView == null)
             {
-                forgePanelView = ForgePanelView.Create(flowCanvas);
+                forgePanelView = ForgePanelView.Create(flowCanvas.transform);
                 forgePanelView.OnCloseRequested += () => forgePanelView.Hide();
                 forgePanelView.OnForgeRequested += (recipeId, materials) =>
                 {
@@ -2006,10 +2068,21 @@ namespace HeroQuest.Systems.World
             // 更新锻造面板结果
             forgePanelView?.ApplyForgeResult(resp.code, resp.result_name, resp.quality);
 
-            // 扣除金币（从当前选中的配方获取费用）
+            // 扣除金币（本地预估，等服务端推送精确数据后覆盖）
             if (localPlayerData != null && forgePanelView != null)
             {
-                // 锻造费用已在 ForgePanelView 中显示，这里只刷新角色面板
+                var recipes = ForgePanelView.GetRecipeCosts();
+                if (recipes != null)
+                {
+                    foreach (var kv in recipes)
+                    {
+                        if (kv.Key == resp.result_id && kv.Value > 0)
+                        {
+                            localPlayerData.gold -= kv.Value;
+                            break;
+                        }
+                    }
+                }
             }
             RefreshCharacterPanelIfVisible();
         }
@@ -2471,8 +2544,8 @@ namespace HeroQuest.Systems.World
             raidLobbyPanelView = RaidLobbyPanelView.Create(flowCanvas);
             raidLobbyPanelView.OnCloseRequested += ToggleRaidLobbyPanelView;
             raidLobbyPanelView.OnRaidEnterRequested += OnRaidEnterRequested;
-            raidLobbyPanelView.OnStashRequested += () => network.SendRaidStash();
-            network.SendRaidMapList();
+            raidLobbyPanelView.OnStashRequested += () => network.SendRaidStashAsync(CancellationToken.None);
+            _ = network.SendRaidMapListAsync(CancellationToken.None);
         }
 
         private void ToggleRaidInventoryPanelView()
@@ -2485,12 +2558,12 @@ namespace HeroQuest.Systems.World
             }
             raidInventoryPanelView = RaidInventoryPanelView.Create(flowCanvas);
             raidInventoryPanelView.OnCloseRequested += ToggleRaidInventoryPanelView;
-            raidInventoryPanelView.OnDiscardRequested += idx => network.SendRaidLootDiscard(idx);
+            raidInventoryPanelView.OnDiscardRequested += idx => network.SendRaidLootDiscardAsync(idx, CancellationToken.None);
         }
 
         private void OnRaidEnterRequested(int templateId)
         {
-            network.SendRaidEnter(templateId);
+            _ = network.SendRaidEnterAsync(templateId, CancellationToken.None);
         }
 
         private void OnRaidEnterResult(GoRaidEnterResponse resp)
@@ -2502,6 +2575,20 @@ namespace HeroQuest.Systems.World
             }
             hud?.AddLog($"[战局] 进入 {resp.map_name}，限时 {resp.duration / 60} 分钟");
             isInRaid = true;
+
+            // 存储容器、撤离点、区域数据
+            _raidContainers = resp.loot_containers;
+            _raidExtractionPoints = resp.extraction_points;
+            _raidZones = resp.zones;
+            _raidNearestContainerId = 0;
+            if (resp.loot_containers != null)
+            {
+                hud?.AddLog($"[战局] 地图中有 {resp.loot_containers.Length} 个容器");
+            }
+            if (resp.extraction_points != null)
+            {
+                hud?.AddLog($"[战局] 共 {resp.extraction_points.Length} 个撤离点");
+            }
 
             // 关闭大厅面板
             if (raidLobbyPanelView != null)
@@ -2515,8 +2602,15 @@ namespace HeroQuest.Systems.World
             {
                 raidHudOverlay = RaidHudOverlay.Create(flowCanvas);
                 raidHudOverlay.OnRaidInventoryRequested += ToggleRaidInventoryPanelView;
+                raidHudOverlay.OnRaidLeaveRequested += () =>
+                {
+                    _ = network.SendRaidLeaveAsync(CancellationToken.None);
+                    hud?.AddLog("[战局] 正在离开战局...");
+                };
+                raidHudOverlay.OnRaidExtractRequested += TryRaidExtract;
             }
             raidHudOverlay.SetTimer(resp.duration);
+            raidHudOverlay.SetZone(resp.map_name, false);
             raidHudOverlay.Show();
         }
 
@@ -2576,6 +2670,7 @@ namespace HeroQuest.Systems.World
                 hud?.AddLog($"[战局] 容器中发现 {resp.items.Length} 件物品");
                 for (int i = 0; i < resp.items.Length; i++)
                 {
+                    if (resp.items[i] == null) continue;
                     hud?.AddLog($"  #{i} {resp.items[i].name} x{resp.items[i].count}");
                 }
             }
@@ -2625,12 +2720,149 @@ namespace HeroQuest.Systems.World
         private void ExitRaidState()
         {
             isInRaid = false;
+            _raidContainers = null;
+            _raidExtractionPoints = null;
+            _raidZones = null;
+            _raidNearestContainerId = 0;
+            raidHudOverlay?.SetExtraction(0, false);
             raidHudOverlay?.Hide();
             if (raidInventoryPanelView != null)
             {
                 Destroy(raidInventoryPanelView.gameObject);
                 raidInventoryPanelView = null;
             }
+        }
+
+        // -------------------------------------------------------------------
+        // Raid interaction methods
+        // -------------------------------------------------------------------
+
+        private void TryRaidExtract()
+        {
+            if (network == null || !network.IsConnected) return;
+
+            if (_raidExtractionPoints == null || _raidExtractionPoints.Length == 0)
+            {
+                hud?.AddLog("[战局] 没有可用的撤离点。");
+                return;
+            }
+
+            // 查找距离玩家最近的撤离点
+            var playerPos = playerController != null ? playerController.transform.position : Vector3.zero;
+            int nearestIdx = 0;
+            float bestDist = float.MaxValue;
+            for (int i = 0; i < _raidExtractionPoints.Length; i++)
+            {
+                var ep = _raidExtractionPoints[i];
+                var dist = Vector2.Distance(new Vector2(playerPos.x, playerPos.y), new Vector2(ep.x, ep.y));
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    nearestIdx = i;
+                }
+            }
+
+            var point = _raidExtractionPoints[nearestIdx];
+            _ = network.SendRaidExtractAsync(point.id, CancellationToken.None);
+            hud?.AddLog($"[战局] 正在撤离点 {point.id} 开始撤离...");
+        }
+
+        private void TryOpenNearestContainer()
+        {
+            if (network == null || !network.IsConnected) return;
+
+            if (_raidContainers == null || _raidContainers.Length == 0)
+            {
+                hud?.AddLog("[战局] 附近没有可搜索的容器。");
+                return;
+            }
+
+            // 查找最近未开启的容器
+            var playerPos = playerController != null ? playerController.transform.position : Vector3.zero;
+            float bestDist = 1.5f; // 交互范围
+            ulong nearestId = 0;
+            for (int i = 0; i < _raidContainers.Length; i++)
+            {
+                var c = _raidContainers[i];
+                if (c.opened) continue;
+                var dist = Vector2.Distance(new Vector2(playerPos.x, playerPos.y), new Vector2(c.x, c.y));
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    nearestId = c.id;
+                }
+            }
+
+            if (nearestId == 0)
+            {
+                hud?.AddLog("[战局] 附近没有可搜索的容器。");
+                return;
+            }
+
+            _raidNearestContainerId = nearestId;
+            _ = network.SendRaidLootOpenAsync(nearestId, CancellationToken.None);
+            hud?.AddLog($"[战局] 正在搜索容器 {nearestId}...");
+        }
+
+        private void TryPickupContainerLoot()
+        {
+            if (network == null || !network.IsConnected) return;
+
+            // 拾取当前容器中第一件物品
+            _ = network.SendRaidLootPickupAsync(0, CancellationToken.None);
+            hud?.AddLog("[战局] 正在拾取物品...");
+        }
+
+        private void OnRaidStashResult(GoRaidStashResponse resp)
+        {
+            if (resp.code != 0)
+            {
+                hud?.AddLog($"[仓库] 查询失败: code={resp.code}");
+                return;
+            }
+            if (resp.items == null || resp.items.Length == 0)
+            {
+                hud?.AddLog("[仓库] 仓库为空。");
+                return;
+            }
+            hud?.AddLog($"[仓库] 共 {resp.items.Length} 件物品:");
+            for (int i = 0; i < Mathf.Min(resp.items.Length, 8); i++)
+            {
+                var item = resp.items[i];
+                if (item == null) continue;
+                var q = GetQualityLabel(item.quality);
+                hud?.AddLog($"  [{q}] {item.name} x{item.count}");
+            }
+            if (resp.items.Length > 8)
+                hud?.AddLog($"  ...等共 {resp.items.Length} 件");
+        }
+
+        private void OnRaidInfo(GoRaidInfo info)
+        {
+            if (_raidZones != null)
+            {
+                for (int i = 0; i < _raidZones.Length; i++)
+                {
+                    if (_raidZones[i].id == info.zone_id)
+                    {
+                        raidHudOverlay?.SetZone(_raidZones[i].name, info.pvp_flag);
+                        return;
+                    }
+                }
+            }
+            raidHudOverlay?.SetZone($"区域{info.zone_id}", info.pvp_flag);
+        }
+
+        private static string GetQualityLabel(int quality)
+        {
+            return quality switch
+            {
+                1 => "精良",
+                2 => "稀有",
+                3 => "史诗",
+                4 => "传说",
+                _ => "普通"
+            };
         }
     }
 }

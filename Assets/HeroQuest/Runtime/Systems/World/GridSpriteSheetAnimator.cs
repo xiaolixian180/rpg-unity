@@ -8,6 +8,14 @@ namespace HeroQuest.Systems.World
     {
         private static readonly Dictionary<string, Sprite[]> FrameCache = new();
 
+        /// <summary>
+        /// 清除静态帧缓存，释放 Sprite 引用。在场景卸载或域重载时调用。
+        /// </summary>
+        public static void ClearCache()
+        {
+            FrameCache.Clear();
+        }
+
         [SerializeField] private string rightTextureResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Right";
         [SerializeField] private string leftTextureResourcePath = "HeroQuest/Playable/Warrior_Male_Walk_Left";
         [SerializeField] private int columns = 8;
@@ -264,7 +272,7 @@ namespace HeroQuest.Systems.World
             {
                 return texture.GetPixels32();
             }
-            catch (UnityException)
+            catch
             {
                 return null;
             }

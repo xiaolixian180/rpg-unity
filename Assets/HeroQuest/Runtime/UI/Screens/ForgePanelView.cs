@@ -37,23 +37,23 @@ namespace HeroQuest.UI.Screens
         public static readonly ForgeRecipeData[] AllRecipes = new ForgeRecipeData[]
         {
             // 武器
-            new ForgeRecipeData { id = 1, name = "精钢长剑锻造", materials = new[] { (2001u, 3), (2002u, 2) }, resultEquipId = 3, resultQuality = 1, requireLevel = 10, cost = 500 },
-            new ForgeRecipeData { id = 2, name = "暗影之刃锻造", materials = new[] { (2001u, 5), (2003u, 3) }, resultEquipId = 4, resultQuality = 2, requireLevel = 20, cost = 1500 },
-            new ForgeRecipeData { id = 3, name = "龙牙剑锻造", materials = new[] { (2001u, 10), (2003u, 5), (2004u, 2) }, resultEquipId = 5, resultQuality = 3, requireLevel = 30, cost = 5000 },
-            new ForgeRecipeData { id = 14, name = "天罚圣剑锻造", materials = new[] { (2001u, 20), (2003u, 10), (2004u, 5), (2005u, 1) }, resultEquipId = 6, resultQuality = 4, requireLevel = 45, cost = 15000 },
+            new ForgeRecipeData { id = 1, name = "精钢长剑锻造", materials = new[] { (2001ul, 3), (2002ul, 2) }, resultEquipId = 3, resultQuality = 1, requireLevel = 10, cost = 500 },
+            new ForgeRecipeData { id = 2, name = "暗影之刃锻造", materials = new[] { (2001ul, 5), (2003ul, 3) }, resultEquipId = 4, resultQuality = 2, requireLevel = 20, cost = 1500 },
+            new ForgeRecipeData { id = 3, name = "龙牙剑锻造", materials = new[] { (2001ul, 10), (2003ul, 5), (2004ul, 2) }, resultEquipId = 5, resultQuality = 3, requireLevel = 30, cost = 5000 },
+            new ForgeRecipeData { id = 14, name = "天罚圣剑锻造", materials = new[] { (2001ul, 20), (2003ul, 10), (2004ul, 5), (2005ul, 1) }, resultEquipId = 6, resultQuality = 4, requireLevel = 45, cost = 15000 },
             // 头盔
-            new ForgeRecipeData { id = 4, name = "秘银头盔锻造", materials = new[] { (2001u, 3), (2002u, 2) }, resultEquipId = 12, resultQuality = 1, requireLevel = 10, cost = 400 },
-            new ForgeRecipeData { id = 5, name = "暗夜兜帽锻造", materials = new[] { (2001u, 5), (2003u, 3) }, resultEquipId = 13, resultQuality = 2, requireLevel = 20, cost = 1200 },
-            new ForgeRecipeData { id = 6, name = "战神之冠锻造", materials = new[] { (2001u, 10), (2003u, 5), (2004u, 2) }, resultEquipId = 14, resultQuality = 3, requireLevel = 30, cost = 4500 },
+            new ForgeRecipeData { id = 4, name = "秘银头盔锻造", materials = new[] { (2001ul, 3), (2002ul, 2) }, resultEquipId = 12, resultQuality = 1, requireLevel = 10, cost = 400 },
+            new ForgeRecipeData { id = 5, name = "暗夜兜帽锻造", materials = new[] { (2001ul, 5), (2003ul, 3) }, resultEquipId = 13, resultQuality = 2, requireLevel = 20, cost = 1200 },
+            new ForgeRecipeData { id = 6, name = "战神之冠锻造", materials = new[] { (2001ul, 10), (2003ul, 5), (2004ul, 2) }, resultEquipId = 14, resultQuality = 3, requireLevel = 30, cost = 4500 },
             // 铠甲
-            new ForgeRecipeData { id = 7, name = "精钢战甲锻造", materials = new[] { (2001u, 4), (2002u, 3) }, resultEquipId = 22, resultQuality = 1, requireLevel = 10, cost = 600 },
-            new ForgeRecipeData { id = 8, name = "暗影铠甲锻造", materials = new[] { (2001u, 6), (2003u, 4) }, resultEquipId = 23, resultQuality = 2, requireLevel = 20, cost = 1800 },
-            new ForgeRecipeData { id = 9, name = "龙鳞铠甲锻造", materials = new[] { (2001u, 12), (2003u, 6), (2004u, 3) }, resultEquipId = 24, resultQuality = 3, requireLevel = 30, cost = 6000 },
+            new ForgeRecipeData { id = 7, name = "精钢战甲锻造", materials = new[] { (2001ul, 4), (2002ul, 3) }, resultEquipId = 22, resultQuality = 1, requireLevel = 10, cost = 600 },
+            new ForgeRecipeData { id = 8, name = "暗影铠甲锻造", materials = new[] { (2001ul, 6), (2003ul, 4) }, resultEquipId = 23, resultQuality = 2, requireLevel = 20, cost = 1800 },
+            new ForgeRecipeData { id = 9, name = "龙鳞铠甲锻造", materials = new[] { (2001ul, 12), (2003ul, 6), (2004ul, 3) }, resultEquipId = 24, resultQuality = 3, requireLevel = 30, cost = 6000 },
             // 手套/靴子/项链/戒指
-            new ForgeRecipeData { id = 10, name = "精钢护手锻造", materials = new[] { (2001u, 2), (2002u, 2) }, resultEquipId = 32, resultQuality = 1, requireLevel = 10, cost = 350 },
-            new ForgeRecipeData { id = 11, name = "疾风之靴锻造", materials = new[] { (2001u, 3), (2002u, 2) }, resultEquipId = 42, resultQuality = 1, requireLevel = 10, cost = 400 },
-            new ForgeRecipeData { id = 12, name = "银项链锻造", materials = new[] { (2001u, 3), (2002u, 2) }, resultEquipId = 51, resultQuality = 1, requireLevel = 10, cost = 450 },
-            new ForgeRecipeData { id = 13, name = "银戒指锻造", materials = new[] { (2001u, 2), (2002u, 2) }, resultEquipId = 61, resultQuality = 1, requireLevel = 10, cost = 350 },
+            new ForgeRecipeData { id = 10, name = "精钢护手锻造", materials = new[] { (2001ul, 2), (2002ul, 2) }, resultEquipId = 32, resultQuality = 1, requireLevel = 10, cost = 350 },
+            new ForgeRecipeData { id = 11, name = "疾风之靴锻造", materials = new[] { (2001ul, 3), (2002ul, 2) }, resultEquipId = 42, resultQuality = 1, requireLevel = 10, cost = 400 },
+            new ForgeRecipeData { id = 12, name = "银项链锻造", materials = new[] { (2001ul, 3), (2002ul, 2) }, resultEquipId = 51, resultQuality = 1, requireLevel = 10, cost = 450 },
+            new ForgeRecipeData { id = 13, name = "银戒指锻造", materials = new[] { (2001ul, 2), (2002ul, 2) }, resultEquipId = 61, resultQuality = 1, requireLevel = 10, cost = 350 },
         };
 
         // ================================================================
@@ -231,6 +231,19 @@ namespace HeroQuest.UI.Screens
                 };
                 _resultText.text = $"锻造失败: {reason}";
             }
+        }
+
+        /// <summary>
+        /// 返回当前所有配方的 resultEquipId → cost 映射，供外部本地扣金币使用。
+        /// </summary>
+        public static Dictionary<ulong, long> GetRecipeCosts()
+        {
+            var dict = new Dictionary<ulong, long>();
+            foreach (var r in AllRecipes)
+            {
+                dict[(ulong)r.resultEquipId] = r.cost;
+            }
+            return dict;
         }
 
         // ================================================================
