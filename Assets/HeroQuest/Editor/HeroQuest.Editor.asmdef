@@ -5,6 +5,7 @@
     "HeroQuest.Runtime",
     "Unity.TextMeshPro",
     "UnityEngine.UI",
+    "UnityEngine.UIElementsModule",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

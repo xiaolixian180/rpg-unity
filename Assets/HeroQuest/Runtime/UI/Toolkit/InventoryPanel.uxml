@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements">
+    <Style src="InventoryPanel.uss" />
+    <Style src="anime-theme.uss" />
+    <ui:VisualElement name="root" style="flex-grow: 1; background-color: rgb(255, 255, 255); justify-content: center; align-items: center;">
+        <ui:Label text="Hello UI Toolkit" name="title-label" style="font-size: 48px; -unity-font-style: bold; color: rgb(0, 0, 0); padding: 16px; -unity-text-align: middle-center;" />
+    </ui:VisualElement>
+</ui:UXML>

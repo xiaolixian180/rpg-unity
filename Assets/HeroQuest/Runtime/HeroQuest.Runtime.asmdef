@@ -3,7 +3,8 @@
   "rootNamespace": "HeroQuest",
   "references": [
     "Unity.TextMeshPro",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "UnityEngine.UIElementsModule"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
