@@ -96,6 +96,13 @@ namespace HeroQuest.Systems.World
 
             SetGameplayEnabled(false);
             BuildCanvas();
+
+            // 初始化音频系统
+            HeroQuest.Systems.Audio.AudioAssets.LoadFromGenerators();
+            var audio = HeroQuest.Systems.Audio.AudioManager.Ensure();
+            if (HeroQuest.Systems.Audio.AudioAssets.BgmLogin != null)
+                audio.PlayBGM(HeroQuest.Systems.Audio.AudioAssets.BgmLogin);
+
             ShowLogin();
         }
 
@@ -494,6 +501,10 @@ namespace HeroQuest.Systems.World
             hud.SetCharacter($"{GetClassLabel(selectedClass)} {(selectedGender == CharacterGender.Male ? "男" : "女")}", definition.LoadPortrait());
             hud.AddLog($"[角色] 已选择{GetClassLabel(selectedClass)}。");
 
+            // 进入地图后切换 BGM
+            if (HeroQuest.Systems.Audio.AudioAssets.BgmMap != null)
+                HeroQuest.Systems.Audio.AudioManager.Ensure().PlayBGM(HeroQuest.Systems.Audio.AudioAssets.BgmMap);
+
             hud.CommandClicked += OnCommandClicked;
             hud.SkillSlotClicked += OnSkillSlotClicked;
             PopulateActionBar();
@@ -844,6 +855,12 @@ namespace HeroQuest.Systems.World
                 hud?.ShowFloatingText(monsterPos, dmgText, dmgColor);
                 // 攻击命中特效
                 SpawnHitEffect(monsterPos);
+                // 命中音效
+                HeroQuest.Systems.Audio.AudioManager.Ensure().PlaySFX(
+                    damage.is_dead
+                        ? HeroQuest.Systems.Audio.AudioAssets.SfxMonsterDeath
+                        : HeroQuest.Systems.Audio.AudioAssets.SfxHit,
+                    1f, 0.1f);
             }
 
             if (damage.pet_damage > 0)
@@ -1306,6 +1323,12 @@ namespace HeroQuest.Systems.World
             {
                 SpawnAttackFlash(playerController.transform.position, skillId);
             }
+
+            // 攻击/技能音效
+            var sfx = skillId == 0
+                ? HeroQuest.Systems.Audio.AudioAssets.SfxAttack
+                : HeroQuest.Systems.Audio.AudioAssets.SfxSkill;
+            HeroQuest.Systems.Audio.AudioManager.Ensure().PlaySFX(sfx, 1f, 0.05f);
         }
 
         /// <summary>
