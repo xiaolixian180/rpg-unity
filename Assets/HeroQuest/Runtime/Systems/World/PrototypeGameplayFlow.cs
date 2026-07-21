@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace HeroQuest.Systems.World
 {
-    public sealed class PrototypeGameplayFlow : MonoBehaviour
+    public sealed class PrototypeGameplayFlow : MonoBehaviour, ICombatVisuals
     {
         private TopDownPlayerController playerController;
         private GridSpriteSheetAnimator animator;
@@ -26,6 +26,8 @@ namespace HeroQuest.Systems.World
         private Button activeLoginButton;
         private GameplayHudController hud;
         private NetworkManager network;
+        private NetworkEventHandler networkHandler;
+        private GameplayState state;
 
         private string authToken;
         private ulong playerId;
@@ -523,98 +525,9 @@ namespace HeroQuest.Systems.World
 
         private void WireNetworkEvents()
         {
-            // Combat / Dungeon
-            network.DamageReceived += OnDamageReceived;
-            network.MonsterRefresh += OnMonsterRefresh;
-            network.ServerBroadcast += OnBroadcast;
-            network.PlayerDie += OnPlayerDie;
-            network.PlayerRevive += OnPlayerRevive;
-            network.EnterDungeonResult += OnEnterDungeonResult;
-            network.CollectResult += OnCollectResult;
-            network.DungeonInfo += OnDungeonInfo;
-            network.BossSpawn += OnBossSpawn;
-            network.BossDie += OnBossDie;
-            network.SkillEffectReceived += OnSkillEffect;
-            network.AutoBattleResult += OnAutoBattleResult;
-            network.UseItemResult += OnUseItemResult;
-            network.InventorySync += OnInventorySync;
-
-            // Player data（角色面板使用）
-            network.LoginResult += OnPlayerDataReceived;
-            network.CreatePlayerResult += OnPlayerDataReceived;
-
-            // Equipment
-            network.EquipStrengthenResult += OnEquipStrengthenResult;
-            network.EquipEnchantResult += OnEquipEnchantResult;
-            network.EquipWearResult += OnEquipWearResult;
-            network.EquipUnloadResult += OnEquipUnloadResult;
-            network.ForgeResult += OnForgeResult;
-
-            // PvP
-            network.PvpAttackResult += OnPvpAttackResult;
-            network.RedNameListReceived += OnRedNameList;
-            network.BountyRewardReceived += OnBountyReward;
-            network.RevengeResult += OnRevengeResult;
-
-            // Pet
-            network.PetSummonResult += OnPetSummonResult;
-            network.PetRecallResult += OnPetRecallResult;
-            network.PetLevelUpResult += OnPetLevelUpResult;
-            network.PetEvolveResult += OnPetEvolveResult;
-            network.PetExploreResult += OnPetExploreResult;
-            network.PetComposeResult += OnPetComposeResult;
-            network.PetEquipResult += OnPetEquipResult;
-            network.PetUnequipResult += OnPetUnequipResult;
-
-            // Trading
-            network.TradeListResult += OnTradeListResult;
-            network.TradePublishResult += OnTradePublishResult;
-            network.TradeBuyResult += OnTradeBuyResult;
-            network.TradeCancelResult += OnTradeCancelResult;
-
-            // Shop
-            network.ShopListResult += OnShopListResult;
-            network.ShopBuyResult += OnShopBuyResult;
-
-            // Skill
-            network.SkillLevelUpResult += OnSkillLevelUpResult;
-            network.SkillResetResult += OnSkillResetResult;
-
-            // Attribute
-            network.AttrAssignResult += OnAttrAssignResult;
-
-            // Ranking
-            network.RankingListResult += OnRankingListResult;
-
-            // Team
-            network.TeamInfoResult += OnTeamInfoResult;
-            network.TeamInvitePushReceived += OnTeamInvitePush;
-            network.TeamInviteResultReceived += OnTeamInviteResult;
-            network.TeamLeaveResult += OnTeamLeaveResult;
-            network.TeamDismissResult += OnTeamDismissResult;
-            network.TeamKickResult += OnTeamKickResult;
-            network.TeamUpdateReceived += OnTeamUpdate;
-
-            // Chat
-            network.ChatSendResult += OnChatSendResult;
-            network.ChatMessageReceived += OnChatMessage;
-            network.ChatHistoryResult += OnChatHistoryResult;
-
-            // Raid
-            network.RaidEnterResult += OnRaidEnterResult;
-            network.RaidLeaveResult += OnRaidLeaveResult;
-            network.RaidTimer += OnRaidTimer;
-            network.RaidDeath += OnRaidDeath;
-            network.RaidExtractResult += OnRaidExtractResult;
-            network.RaidExtractProgress += OnRaidExtractProgress;
-            network.RaidLootOpenResult += OnRaidLootOpenResult;
-            network.RaidLootPickupResult += OnRaidLootPickupResult;
-            network.RaidLootDiscardResult += OnRaidLootDiscardResult;
-            network.RaidInventorySync += OnRaidInventorySync;
-            network.RaidPvpResult += OnRaidPvpResult;
-            network.RaidMapListResult += OnRaidMapListResult;
-            network.RaidStashResult += OnRaidStashResult;
-            network.RaidInfoReceived += OnRaidInfo;
+            EnsureGameplayState();
+            networkHandler = new NetworkEventHandler(state, this);
+            networkHandler.Subscribe();
         }
 
         private void OnDestroy()
@@ -625,77 +538,42 @@ namespace HeroQuest.Systems.World
                 hud.SkillSlotClicked -= OnSkillSlotClicked;
             }
 
-            if (network != null)
+            networkHandler?.Unsubscribe();
+        }
+
+        private void EnsureGameplayState()
+        {
+            state ??= new GameplayState
             {
-                network.DamageReceived -= OnDamageReceived;
-                network.MonsterRefresh -= OnMonsterRefresh;
-                network.ServerBroadcast -= OnBroadcast;
-                network.PlayerDie -= OnPlayerDie;
-                network.PlayerRevive -= OnPlayerRevive;
-                network.EnterDungeonResult -= OnEnterDungeonResult;
-                network.CollectResult -= OnCollectResult;
-                network.DungeonInfo -= OnDungeonInfo;
-                network.BossSpawn -= OnBossSpawn;
-                network.BossDie -= OnBossDie;
-                network.SkillEffectReceived -= OnSkillEffect;
-                network.AutoBattleResult -= OnAutoBattleResult;
-                network.UseItemResult -= OnUseItemResult;
-                network.InventorySync -= OnInventorySync;
-                network.LoginResult -= OnPlayerDataReceived;
-                network.CreatePlayerResult -= OnPlayerDataReceived;
-                network.EquipStrengthenResult -= OnEquipStrengthenResult;
-                network.EquipEnchantResult -= OnEquipEnchantResult;
-                network.EquipWearResult -= OnEquipWearResult;
-                network.EquipUnloadResult -= OnEquipUnloadResult;
-                network.ForgeResult -= OnForgeResult;
-                network.PvpAttackResult -= OnPvpAttackResult;
-                network.RedNameListReceived -= OnRedNameList;
-                network.BountyRewardReceived -= OnBountyReward;
-                network.RevengeResult -= OnRevengeResult;
-                network.PetSummonResult -= OnPetSummonResult;
-                network.PetRecallResult -= OnPetRecallResult;
-                network.PetLevelUpResult -= OnPetLevelUpResult;
-                network.PetEvolveResult -= OnPetEvolveResult;
-                network.PetExploreResult -= OnPetExploreResult;
-                network.PetComposeResult -= OnPetComposeResult;
-                network.PetEquipResult -= OnPetEquipResult;
-                network.PetUnequipResult -= OnPetUnequipResult;
-                network.TradeListResult -= OnTradeListResult;
-                network.TradePublishResult -= OnTradePublishResult;
-                network.TradeBuyResult -= OnTradeBuyResult;
-                network.TradeCancelResult -= OnTradeCancelResult;
-                network.ShopListResult -= OnShopListResult;
-                network.ShopBuyResult -= OnShopBuyResult;
-                network.SkillLevelUpResult -= OnSkillLevelUpResult;
-                network.SkillResetResult -= OnSkillResetResult;
-                network.AttrAssignResult -= OnAttrAssignResult;
-                network.RankingListResult -= OnRankingListResult;
-                network.TeamInfoResult -= OnTeamInfoResult;
-                network.TeamInvitePushReceived -= OnTeamInvitePush;
-                network.TeamInviteResultReceived -= OnTeamInviteResult;
-                network.TeamLeaveResult -= OnTeamLeaveResult;
-                network.TeamDismissResult -= OnTeamDismissResult;
-                network.TeamKickResult -= OnTeamKickResult;
-                network.TeamUpdateReceived -= OnTeamUpdate;
-                network.ChatSendResult -= OnChatSendResult;
-                network.ChatMessageReceived -= OnChatMessage;
-                network.ChatHistoryResult -= OnChatHistoryResult;
-                // Raid
-                network.RaidEnterResult -= OnRaidEnterResult;
-                network.RaidLeaveResult -= OnRaidLeaveResult;
-                network.RaidTimer -= OnRaidTimer;
-                network.RaidDeath -= OnRaidDeath;
-                network.RaidExtractResult -= OnRaidExtractResult;
-                network.RaidExtractProgress -= OnRaidExtractProgress;
-                network.RaidLootOpenResult -= OnRaidLootOpenResult;
-                network.RaidLootPickupResult -= OnRaidLootPickupResult;
-                network.RaidLootDiscardResult -= OnRaidLootDiscardResult;
-                network.RaidInventorySync -= OnRaidInventorySync;
-                network.RaidPvpResult -= OnRaidPvpResult;
-                network.RaidMapListResult -= OnRaidMapListResult;
-                network.RaidStashResult -= OnRaidStashResult;
-                network.RaidInfoReceived -= OnRaidInfo;
-            }
+                Network = network,
+                Hud = hud,
+                FlowCanvas = flowCanvas,
+                PlayerController = playerController,
+                Animator = animator,
+            };
+
+            // Sync local fields to state on each call (fields may have been updated)
+            state.Network = network;
+            state.Hud = hud;
+            state.FlowCanvas = flowCanvas;
+            state.PlayerController = playerController;
+            state.Animator = animator;
+            state.AuthToken = authToken;
+            state.PlayerId = playerId;
+            state.CurrentLayer = currentLayer;
+            state.AutoBattleEnabled = autoBattleEnabled;
+            state.GameplayActive = gameplayActive;
+            state.PlayerDead = playerDead;
+            state.IsInRaid = isInRaid;
+            state.LocalPlayerData = localPlayerData;
+            state.SelectedClass = selectedClass;
+            state.SelectedGender = selectedGender;
+            state.SelectedTargetId = selectedTargetId;
+            state.PendingWearEquipId = pendingWearEquipId;
+            state.RaidContainers = _raidContainers;
+            state.RaidExtractionPoints = _raidExtractionPoints;
+            state.RaidZones = _raidZones;
+            state.RaidNearestContainerId = _raidNearestContainerId;
         }
 
         private void OnEnterDungeonResult(uint code, GoEnterDungeonResponse resp)
@@ -2939,5 +2817,92 @@ namespace HeroQuest.Systems.World
                 _ => "普通"
             };
         }
+
+        // --- ICombatVisuals 实现 ---
+
+        void ICombatVisuals.RemoveDungeonMonster(ulong id)
+        {
+            if (dungeonMonsterObjects.TryGetValue(id, out var deadObj))
+            {
+                Destroy(deadObj);
+                dungeonMonsterObjects.Remove(id);
+            }
+        }
+
+        void ICombatVisuals.UpdateOrCreateMonster(GoMonsterData m)
+        {
+            if (dungeonMonsterObjects.TryGetValue(m.id, out var existing) && existing != null)
+            {
+                existing.transform.position = new Vector3((float)m.x, (float)m.y, 0f);
+                var wm = existing.GetComponent<WildMonster>();
+                if (wm != null && m.max_hp > 0)
+                {
+                    wm.SetHealthPercent((float)m.hp / m.max_hp);
+                }
+            }
+            else
+            {
+                SpawnDungeonMonsterVisual(m);
+            }
+        }
+
+        void ICombatVisuals.UpdateMonsterHealth(ulong id, long hp, long maxHp)
+        {
+            if (dungeonMonsterObjects.TryGetValue(id, out var monsterObj))
+            {
+                var wm = monsterObj.GetComponent<WildMonster>();
+                if (wm != null && maxHp > 0)
+                {
+                    wm.SetHealthPercent((float)hp / maxHp);
+                }
+            }
+        }
+
+        void ICombatVisuals.RemoveMissingMonsters(HashSet<ulong> validIds)
+        {
+            var toRemove = new List<ulong>();
+            foreach (var kv in dungeonMonsterObjects)
+            {
+                if (!validIds.Contains(kv.Key))
+                {
+                    if (kv.Value != null) Destroy(kv.Value);
+                    toRemove.Add(kv.Key);
+                }
+            }
+            foreach (var id in toRemove) dungeonMonsterObjects.Remove(id);
+        }
+
+        void ICombatVisuals.PlayHitSound(bool isDead)
+        {
+            HeroQuest.Systems.Audio.AudioManager.Ensure().PlaySFX(
+                isDead
+                    ? HeroQuest.Systems.Audio.AudioAssets.SfxMonsterDeath
+                    : HeroQuest.Systems.Audio.AudioAssets.SfxHit,
+                1f, 0.1f);
+        }
+
+        void ICombatVisuals.OnTeamInfoReceived(GoTeamInfoResponse resp) => OnTeamInfoResult(resp);
+        void ICombatVisuals.OnTeamUpdateReceived(GoTeamUpdate update) => OnTeamUpdate(update);
+        void ICombatVisuals.OnChatMessageReceived(GoChatMessage msg) => OnChatMessage(msg);
+        void ICombatVisuals.OnChatHistoryReceived(GoChatHistoryResponse resp) => OnChatHistoryResult(resp);
+        void ICombatVisuals.OnRaidMapListReceived(GoRaidMapListResponse resp) => OnRaidMapListResult(resp);
+        void ICombatVisuals.OnRaidStashReceived(GoRaidStashResponse resp) => OnRaidStashResult(resp);
+        void ICombatVisuals.OnRaidInfoReceived(GoRaidInfo info) => OnRaidInfo(info);
+
+        void ICombatVisuals.SpawnDungeonMonsterVisual(GoMonsterData m) => SpawnDungeonMonsterVisual(m);
+        void ICombatVisuals.ClearDungeonMonsterVisuals() => ClearDungeonMonsterVisuals();
+        void ICombatVisuals.SpawnHitEffect(Vector3 worldPos) => SpawnHitEffect(worldPos);
+        void ICombatVisuals.SelectNearestTarget() => SelectNearestTarget();
+        void ICombatVisuals.HandlePlayerDeath() => HandlePlayerDeath();
+        void ICombatVisuals.HandlePlayerRevive() => HandlePlayerRevive();
+        void ICombatVisuals.RefreshConsumableBar(GoItemCount[] items) => RefreshConsumableBar(items);
+        void ICombatVisuals.RefreshCharacterPanelIfVisible() => RefreshCharacterPanelIfVisible();
+        void ICombatVisuals.OnRaidEnterResult(GoRaidEnterResponse resp) => OnRaidEnterResult(resp);
+        void ICombatVisuals.OnRaidLeaveResult(GoRaidLeaveResponse resp) => OnRaidLeaveResult(resp);
+        void ICombatVisuals.OnRaidTimer(GoRaidTimer timer) => OnRaidTimer(timer);
+        void ICombatVisuals.OnRaidDeath(GoRaidDeath death) => OnRaidDeath(death);
+        void ICombatVisuals.OnRaidExtractProgress(GoRaidExtractProgress prog) => OnRaidExtractProgress(prog);
+        void ICombatVisuals.OnRaidLootOpenResult(GoRaidLootOpenResponse resp) => OnRaidLootOpenResult(resp);
+        void ICombatVisuals.OnRaidInventorySync(GoRaidInventory inv) => OnRaidInventorySync(inv);
     }
 }

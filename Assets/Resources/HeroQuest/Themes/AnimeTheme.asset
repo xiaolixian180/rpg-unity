@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e050df37cffca048ac76e268a3b8023, type: 3}
+  m_Name: AnimeTheme
+  m_EditorClassIdentifier: 
+  panelBackground: {r: 0.12, g: 0.14, b: 0.22, a: 0.88}
+  panelDark: {r: 0.06, g: 0.08, b: 0.14, a: 0.92}
+  panelLight: {r: 0.18, g: 0.2, b: 0.28, a: 0.85}
+  slotBackground: {r: 0.08, g: 0.1, b: 0.16, a: 1}
+  barBackground: {r: 0.03, g: 0.03, b: 0.06, a: 1}
+  border: {r: 0.35, g: 0.42, b: 0.65, a: 1}
+  borderAccent: {r: 0.85, g: 0.7, b: 0.3, a: 1}
+  primary: {r: 0.2, g: 0.45, b: 0.85, a: 1}
+  secondary: {r: 0.15, g: 0.3, b: 0.55, a: 1}
+  gold: {r: 0.85, g: 0.7, b: 0.3, a: 1}
+  danger: {r: 0.85, g: 0.2, b: 0.25, a: 1}
+  success: {r: 0.25, g: 0.75, b: 0.4, a: 1}
+  textPrimary: {r: 0.92, g: 0.93, b: 0.96, a: 1}
+  textSecondary: {r: 0.65, g: 0.68, b: 0.75, a: 1}
+  textPlaceholder: {r: 0.45, g: 0.48, b: 0.55, a: 1}
+  textChat: {r: 0.55, g: 0.85, b: 0.55, a: 1}
+  hpHigh: {r: 0.2, g: 0.72, b: 0.3, a: 1}
+  hpMid: {r: 0.9, g: 0.75, b: 0.15, a: 1}
+  hpLow: {r: 0.85, g: 0.15, b: 0.12, a: 1}
+  mpFill: {r: 0.15, g: 0.35, b: 0.9, a: 1}
+  xpFill: {r: 0.45, g: 0.25, b: 0.85, a: 1}
+  cooldownOverlay: {r: 0.15, g: 0.3, b: 0.8, a: 0.5}
+  qualityCommon: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  qualityUncommon: {r: 0.3, g: 0.75, b: 0.3, a: 1}
+  qualityRare: {r: 0.25, g: 0.5, b: 0.95, a: 1}
+  qualityEpic: {r: 0.65, g: 0.3, b: 0.85, a: 1}
+  qualityLegendary: {r: 0.95, g: 0.65, b: 0.15, a: 1}
+  qualityMythic: {r: 0.95, g: 0.25, b: 0.55, a: 1}
+  spacingSmall: 4
+  spacingMedium: 8
+  spacingLarge: 16
+  panelCornerRadius: 8
+  borderWidth: 2
+  tmpFont: {fileID: 0}
