@@ -44,3 +44,9 @@ Thumbs.db
 
 # Keep package lock tracked when Unity creates it.
 !Packages/packages-lock.json
+
+# Codely CLI
+/.codely-cli/
+
+# Dev screenshots
+/screenshots/
