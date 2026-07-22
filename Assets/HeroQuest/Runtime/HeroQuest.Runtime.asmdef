@@ -4,7 +4,9 @@
   "references": [
     "Unity.TextMeshPro",
     "UnityEngine.UI",
-    "UnityEngine.UIElementsModule"
+    "UnityEngine.UIElementsModule",
+    "Unity.Addressables",
+    "Unity.ResourceManager"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
