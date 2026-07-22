@@ -50,3 +50,7 @@ Thumbs.db
 
 # Dev screenshots
 /screenshots/
+
+# 生成器历史缓存与工具状态（自动生成，不入库）
+Assets/TJGenerators/History/
+.com-unity-codely.json
