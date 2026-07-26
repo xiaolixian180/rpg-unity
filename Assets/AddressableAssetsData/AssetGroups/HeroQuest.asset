@@ -1,0 +1,658 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: HeroQuest
+  m_EditorClassIdentifier: 
+  m_GroupName: HeroQuest
+  m_Data:
+    m_SerializedData: []
+  m_GUID: de22b9006775f5840afd20bebcd8d58d
+  m_SerializeEntries:
+  - m_GUID: 08b243d1093301b4486601786159c10d
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230538 2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 08cd7b6c57a17b2438e71c91c0663bfe
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Tree_01.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0947421c53988014db45bd04070a5ff0
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062737 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0a9c836b0cf9392458517c9583812efe
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230835 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0bb4bc22d966f0448832c07a18663910
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062733.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0d7a954715dc7054ea472d7cba670147
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230538 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0fdbe829a8e1e5a4da4898d442e6fe6c
+    m_Address: Assets/TJGenerators/History/Music_20260721_142439.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 100f040a9e3f9d2499a73a4e336df15c
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062849 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 10934ba6f6e99464eba29e99d7441343
+    m_Address: Assets/TJGenerators/History/Image_20260720_063146.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1110c473188383749889f474cf542000
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Mage_Male_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12a989e1d7d106d4aadcd5cea76e9122
+    m_Address: Assets/TJGenerators/History/SFX_Attack.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1343f720db794c36a6b5ec2593c05049
+    m_Address: Assets/Resources/HeroQuest/Characters/Priest_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 15b98fbb3d55b0249a4a59a8dfcb3f61
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_02.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1827e36f1f7f9524c974eda254432813
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063230.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 18e9c4c15d3f1a143b181de675af2a27
+    m_Address: Assets/TJGenerators/History/Image_20260720_063151.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 19424bc16b91381438804508298ba8fe
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Priest_Male_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 199f20f290314e8418a45a7bf76614f0
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Archer_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b10fa7d32704850af81e03fa91cb04b
+    m_Address: Assets/Resources/HeroQuest/Characters/Mage_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20a88278056a42b08fdf37278dcba050
+    m_Address: Assets/Resources/HeroQuest/Characters/Warrior_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21d5e478f60bebf4783dec9df0629de9
+    m_Address: Assets/TJGenerators/History/SFX_Error.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 236d135db37f4344b92c43a0d9a7cbb1
+    m_Address: Assets/Resources/HeroQuest/Characters/Mage_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 26a236efce7b2b549ae32cc0ae56c59c
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Warrior_Female_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27c2edf889c3acd49a4cfabc4742cd2c
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231008.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 280f024d14d940d886d28e25307ae7e0
+    m_Address: Assets/Resources/HeroQuest/Characters/Priest_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2853b781e28a49c429c3aec4e5234f53
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230834.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e34e0fb90c6ccc489609f3f53323b1e
+    m_Address: Assets/TJGenerators/History/Image_20260720_062733.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 317534cad05ccbe4e8c43b0ed0b2ba14
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Priest_Male_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 31d6c3b723ccbdd4bb0c5ad4a5049be1
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063711.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3293a6e8263ce254ab36b0dd0d45d32c
+    m_Address: Assets/TJGenerators/History/SFX_Skill.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37c4cf22e2d8f1a418d2d261484efc04
+    m_Address: PostProcessing/PP_Combat
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 38f06ad8cce5ff64080c1b28cec5c147
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231008 2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a4d8198d0463fd42a95f78eafab6c24
+    m_Address: Assets/TJGenerators/History/Image_20260720_062740.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a6eed5a974399a46a78eaa148b49f8e
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Archer_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e258991b74267949aae4c4c85d12dfe
+    m_Address: HeroQuest/Themes/AnimeTheme
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3ee08488718242a4bb2fd3b0c00909d4
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Mage_Male_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 41486a8256943e74dbae40d6fd07d943
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Priest_Female_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4630e8cc27d51884dbe2a81b542c92c3
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231311.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46ddfa52f69237f44b2be1cc65d156a6
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063340.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b2374fa7871cf94ab8c3b4056db7e91
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230538.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4cb5b475055b17549bb3a8ca1b668dbb
+    m_Address: PostProcessing/PP_Raid
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4daf98a70f07b0b4ea4021bacd53a48d
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Warrior_Male_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 504fe89a5deacc6409abbe3564bf2ab5
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Archer_Male_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50a181d1042a603459dc6ab2908f47bd
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Tree_03.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51c51b19a592d4d40bdefc04c694be52
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063531.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 52e59df64e91100489e9c4e1c5124ca7
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062736.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 548c9f42b522551468eb9c067bc8c560
+    m_Address: UI/GameplayHUD
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 58662ae1e6143684d994c2dfc473535d
+    m_Address: Assets/TJGenerators/History/Image_20260720_062740 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5a4130116073ac042884d4a81317cbe8
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063218.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c6f940917b33e647b0b7940ae83fc06
+    m_Address: Assets/TJGenerators/History/Image_20260721_230535 2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e269e646f4618746969e064a0c6c7bf
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063512.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f57418831a4dd541a82d969d943a7da
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Mage_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 600a3328993da7d4baec60928e2564be
+    m_Address: Assets/TJGenerators/History/Image_20260720_062741 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 654a2310ca6a13d45b6af19b86d0c964
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062906.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66e2abf0c611b274095ae4fcf24bac96
+    m_Address: Assets/TJGenerators/History/Image_20260720_062741.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 687879cbe1423bb48ae69e96dd8f1e1d
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062735 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 688451d6e42d74e4d870e3c33ef50933
+    m_Address: Assets/TJGenerators/History/SFX_Button.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69fb8cfd0e6fd24478d03c9fb98ed248
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Warrior_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a9e9dc9976321c47951bd69288823b2
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063516.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b9bc3550add14d44b254617c17619a5
+    m_Address: Assets/TJGenerators/History/Image_20260720_063205.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c3f1fabc113bb043871ccde36559b87
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230835.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6cbec82cdc5a55548828a044927c6033
+    m_Address: Assets/TJGenerators/History/BGM_Login.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e3bd17a59d80644bb65ed7bbb964b45
+    m_Address: Assets/TJGenerators/History/BGM_Map.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7010733256a8c5347a59f243a6756207
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231140.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 73f19c7e939a7834585d3d3c5dc9dcf2
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231009.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7445c640bb0028d4097c9a29eb8cb396
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231007.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b73109bc2e64ac4498a65eef5619ac4
+    m_Address: Assets/TJGenerators/History/BGM_Combat.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d159048a27c1284d90606cf5ac3737e
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063708.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d761d7feaf6c304488c793ded9c8305
+    m_Address: Assets/TJGenerators/History/Image_20260721_230534 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f0f081cbef9cc244b54da5351f4518f
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Rock_02.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 86d7002bfd1d87546b56bb55476babe0
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_01.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a3e623dd7715c24aa7327ca9e5cf9fe
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Tree_02.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b366f804f0017343bbe25b8bbc3589d
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063333.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8e4cad81c8727a241b83aa247c0b6dd3
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063225.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f3cdf8096025f64ca826113f6197a0a
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062906 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f41805dfa14de54e8ad138ee48f2a41
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_05.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9396a4d1dac255744a58e7725673ed2c
+    m_Address: Assets/TJGenerators/History/BGM_Raid.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9449edb8274f261468b5d2cfdcc3e581
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Warrior_Male_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95fd3d0e7dffe334593823a0c58020e2
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Priest_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 97a8c37593ef466399c5cf80dfdbf9ed
+    m_Address: Assets/Resources/HeroQuest/Characters/Archer_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 983e42ee8caa2f245993ce2843a3efd1
+    m_Address: Assets/TJGenerators/History/SFX_LevelUp.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9861119200c53a34481f80f184e7b757
+    m_Address: Assets/TJGenerators/History/SFX_Pickup.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a9fc2fe03e2dd14da479661c3604698
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Archer_Female_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b32cbd0e9f64cfc812631bb9d5bee19
+    m_Address: Assets/Resources/HeroQuest/Characters/Warrior_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b9c42bcf55aca248aabd79f8e41b32e
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Mage_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fb4268d327ef234bb53bafc92024b11
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063659.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a048a3fd79dfe6b47a94e3547aa0d09d
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062848.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a103fa08374e904408cd7d6eaac36173
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230834 2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5496bb10f0058b4884c9c614bf8bcd2
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Priest_Male.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a567ae20fbffb1f4cba1a3d62bc09598
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063521.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a7a9fe3e2759b5e4291365a0e88a6c37
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_06.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a82b94d69a51db642bf56f4041d301e4
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Warrior_Female_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8a2e09d3de6b3d429da90eddebd3ba1
+    m_Address: Assets/TJGenerators/History/Image_20260720_063159.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa943934aa388a74984df69185637306
+    m_Address: Assets/Resources/HeroQuest/Anime/Enemies/WildMonster_01.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: accaee29aada8b5498fb742b40aeacec
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230538 3.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: adbbb80feb8ccea4cb201d0a40a10a56
+    m_Address: Assets/TJGenerators/History/Image_20260721_230534.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b1b55ef3b2cb40243991937a138b047a
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Priest_Female_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b21561d77742c0d409da1edcb9fb9ddc
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062948.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b432a7d238eaa6f49be24f0000652194
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062733 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b72c2608a4db25241b4ff2245579b3eb
+    m_Address: UI/LoginPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ba9d5521cf7caad478ad2789af08e5fc
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_231008 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bac1a118c163d764e94eed25d2a7bcdb
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063345.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc1e175432ec31c41bf539cd843a1327
+    m_Address: Assets/TJGenerators/History/SFX_Hit.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc39be43666b09947b05d64c2727f81a
+    m_Address: Assets/TJGenerators/History/SFX_MonsterDeath.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be16b67b56ff69542a4f467421711284
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Mage_Female_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: befd0da7215d0824eb58d0eaed6a122a
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_03.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c07c78c8d2033c94cae26a2e934ee537
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Rock_01.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c18fa5fc38134455b8a26f55ee385be0
+    m_Address: Assets/Resources/HeroQuest/Characters/Archer_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c26c56e38c2352e4f8c4aa600cfdbfa8
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063337.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4d88d05cff80204b9bcae337b8dfa6a
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Props/Bush_04.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5194860a632246408136424275c2716
+    m_Address: PostProcessing/PP_Login
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cb8ec7590988c084fa7c53d3fe346214
+    m_Address: PostProcessing/PP_Map
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cc9ed76a005977a4ca0d1df4bbdd7544
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Archer_Female_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0e4c3fed60bab745932ef77664ff018
+    m_Address: Assets/Resources/HeroQuest/Anime/Enemies/WildMonster_03.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1510b70a08384240bf445fe13f4698c
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Archer_Male_Walk_Right.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1895655d2ce53e4e8ea4bb5460315f7
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062735.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df557f2d045fcc7488a29ecde06093f6
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062737.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dfa3ee6796b1a774aaa3886ae0da9778
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230834 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2e1b45e8cfb2a54c91a80c1fba3780a
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_063213.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e50be7c79b606164e80d88e7d3ebe08b
+    m_Address: Assets/Resources/HeroQuest/Anime/Enemies/WildMonster_02.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9a45e5daf34d074fa0dd35316a51bf2
+    m_Address: Assets/TJGenerators/History/Image_20260721_230535.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eb8631bad4cbd8c4f91458f00ac4f3a0
+    m_Address: Assets/Resources/HeroQuest/Anime/Characters/Warrior_Female.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ecdc5fe1d83a985438554aaf1bd2e19a
+    m_Address: Assets/Resources/HeroQuest/Anime/Playable/Mage_Female_Walk_Left.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f123cf949efe0b54ba8f5eca29228af4
+    m_Address: Assets/Resources/HeroQuest/Anime/World/Grassland_Background.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f15217e983541cb47900f5447bed72b5
+    m_Address: Assets/TJGenerators/History/Image_20260721_230535 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2c69baac876f7a4b96bb0b10b5933ff
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062849.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f6adc83e14c6fb74f8c7233f283d5bcb
+    m_Address: Assets/TJGenerators/History/Sprite_20260721_230539.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fec94ec99dfca4a4684cda356f3b1dce
+    m_Address: Assets/TJGenerators/History/Sprite_20260720_062735 2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 058d8710260801d4e9ff876ca6e720f6, type: 2}
+  m_SchemaSet:
+    m_Schemas: []

@@ -8,6 +8,9 @@
     "UnityEngine.UIElementsModule",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Core.Runtime",
+    "Unity.Addressables",
+    "Unity.Addressables.Editor",
+    "Unity.ResourceManager",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

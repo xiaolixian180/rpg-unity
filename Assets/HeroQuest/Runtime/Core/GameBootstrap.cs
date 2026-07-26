@@ -80,6 +80,7 @@ namespace HeroQuest.Core
         {
             InitializeRegistry();
             DontDestroyOnLoad(gameObject);
+            _ = AddressableLoader.InitializeAsync();
         }
 
         private void OnDestroy()
