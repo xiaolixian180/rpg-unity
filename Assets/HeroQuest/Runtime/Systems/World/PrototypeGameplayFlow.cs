@@ -111,6 +111,7 @@ namespace HeroQuest.Systems.World
         private void Update()
         {
             network?.PumpMainThread();
+            SyncStateFromGameplayState();
 
             if (activeLoginButton != null && Input.GetKeyDown(KeyCode.Return))
             {
@@ -574,6 +575,41 @@ namespace HeroQuest.Systems.World
             state.RaidExtractionPoints = _raidExtractionPoints;
             state.RaidZones = _raidZones;
             state.RaidNearestContainerId = _raidNearestContainerId;
+        }
+
+        /// <summary>
+        /// 从 GameplayState 回写 NetworkEventHandler 更新的字段到本地，
+        /// 确保 Update 中的本地逻辑能读取到网络事件处理后的最新值。
+        /// </summary>
+        private void SyncStateFromGameplayState()
+        {
+            if (state == null) return;
+
+            currentLayer = state.CurrentLayer;
+            autoBattleEnabled = state.AutoBattleEnabled;
+            playerDead = state.PlayerDead;
+            isInRaid = state.IsInRaid;
+            localPlayerData = state.LocalPlayerData;
+            selectedTargetId = state.SelectedTargetId;
+            pendingWearEquipId = state.PendingWearEquipId;
+            authToken = state.AuthToken;
+            playerId = state.PlayerId;
+
+            // visibleMonsters 和 dungeonMonsterObjects 由 ICombatVisuals 实现直接操作本地字典，
+            // 不需要回写。但 NetworkEventHandler.OnMonsterRefresh 会修改 state.VisibleMonsters，
+            // 需要同步回来。
+            if (state.VisibleMonsters.Count > 0 && visibleMonsters.Count == 0)
+            {
+                foreach (var kv in state.VisibleMonsters)
+                {
+                    visibleMonsters[kv.Key] = kv.Value;
+                }
+            }
+
+            _raidContainers = state.RaidContainers;
+            _raidExtractionPoints = state.RaidExtractionPoints;
+            _raidZones = state.RaidZones;
+            _raidNearestContainerId = state.RaidNearestContainerId;
         }
 
         private void OnEnterDungeonResult(uint code, GoEnterDungeonResponse resp)
