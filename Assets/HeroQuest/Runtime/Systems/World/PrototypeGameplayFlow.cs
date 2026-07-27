@@ -597,13 +597,11 @@ namespace HeroQuest.Systems.World
 
             // visibleMonsters 和 dungeonMonsterObjects 由 ICombatVisuals 实现直接操作本地字典，
             // 不需要回写。但 NetworkEventHandler.OnMonsterRefresh 会修改 state.VisibleMonsters，
-            // 需要同步回来。
-            if (state.VisibleMonsters.Count > 0 && visibleMonsters.Count == 0)
+            // 需要同步回来。每次都同步，确保服务器推送的怪物变更（刷新/死亡）传播到本地。
+            visibleMonsters.Clear();
+            foreach (var kv in state.VisibleMonsters)
             {
-                foreach (var kv in state.VisibleMonsters)
-                {
-                    visibleMonsters[kv.Key] = kv.Value;
-                }
+                visibleMonsters[kv.Key] = kv.Value;
             }
 
             _raidContainers = state.RaidContainers;
@@ -2719,6 +2717,16 @@ namespace HeroQuest.Systems.World
             {
                 Destroy(raidInventoryPanelView.gameObject);
                 raidInventoryPanelView = null;
+            }
+
+            // 同步到 GameplayState，防止下一帧被 SyncStateFromGameplayState 覆盖
+            if (state != null)
+            {
+                state.IsInRaid = false;
+                state.RaidContainers = null;
+                state.RaidExtractionPoints = null;
+                state.RaidZones = null;
+                state.RaidNearestContainerId = 0;
             }
         }
 

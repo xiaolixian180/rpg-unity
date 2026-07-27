@@ -2,7 +2,9 @@
   "name": "HeroQuest.Tests.EditMode",
   "rootNamespace": "HeroQuest.Tests",
   "references": [
-    "HeroQuest.Runtime"
+    "HeroQuest.Runtime",
+    "Unity.TextMeshPro",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [
     "Editor"
